@@ -66,7 +66,7 @@ if ('onhashchange' in window) {
 </script>
 </head>
 <body onload='JumpToLine();'>
-    <a href="/">return to root</a> | <a href="https://github.com/mowhits/ifx-embsyscourse/tree/main/module-2A">goto module files</a>
+    <a href="/ifx-embsyscourse">return to root</a> | <a href="https://github.com/mowhits/ifx-embsyscourse/tree/main/module-2A">goto module files</a>
 
     <p style="white-space:nowrap"><span class="DiffAdd"> Added </span> <span class="DiffChange"> Changed line </span> <span class="DiffText"> Changed text </span> <span class="DiffDelete"> Missing in this file </span></p>
 
@@ -89,12 +89,12 @@ if ('onhashchange' in window) {
 Starting with the compiler options used to generate the assembly files for the two target CPUs:
 <ol>
     <li> <b>add.sm0plus</b>: arm-none-eabi-gcc -S -fverbose-asm -mcpu=<span class="DiffChange">cortex-m0plus</span> add.c -o add.sm0plus</li> 
-    <li> <b>add.sm4</b>: arm-none-eabi-gcc -S -fverbose-asm -mcpu=<span class="DiffChange">cortex-m4</span> <span class="DiffAdd">-mfloat-abi=hard</span> add.c - o add.sm4</li>
+    <li> <b>add.sm4</b>: arm-none-eabi-gcc -S -fverbose-asm -mcpu=<span class="DiffChange">cortex-m4</span> <span class="DiffAdd">-mfloat-abi=hard</span> add.c -o add.sm4</li>
 </ol>
-The -mcpu option is set according to the target CPU (Cortex-m0+ and Cortex-m4). The -mfloat-abi option is set to hard for the M4 and defaults to soft for the M0+. -mfloat-abi=hard directs gcc to emit instructions for the M4's on-chip floating point unit (named fpv4-sp-d16, as seen in the assembler directives) and pass floats to the FPU registers. -mfloat-abi=soft directs gcc to emit calls to floating point software emulation routines (__aeabi_fadd, in this case). These routines perform IEEE 754 operations using integer instructions for cores without FPUs, such as the M0+ in this scenario.
+The -mcpu option is set according to the target CPU (Cortex-M0+ and Cortex-M4). The -mfloat-abi option is set to hard for the M4 and defaults to soft for the M0+. -mfloat-abi=hard directs gcc to emit instructions for the M4's on-chip floating point unit (named fpv4-sp-d16, as seen in the assembler directives) and pass floats to the FPU registers. -mfloat-abi=soft directs gcc to emit calls to floating point software emulation routines (__aeabi_fadd, in this case). These routines perform IEEE 754 operations using integer instructions for cores without FPUs, such as the M0+ in this scenario.
 </p>
 
-<p>The diff provides a clear view of the differences in instructions due to the options chosen. For instance, the asm for M4 contains vldr and vadd, which are the FPU's load and add instructions respectively, while for M0+ the asm simply instructs the core to jump to __aeabi_fadd, the software float-add routine. The -fverbose-asm option annotates the generated assembly with comments and original C source lines, among other details.</p>
+<p>The diff provides a clear view of the differences in instructions due to the options chosen. For instance, the asm for M4 contains vldr and vadd, which are the FPU's load and add instructions respectively, while for M0+ the asm simply instructs the core to call __aeabi_fadd, the software float-add routine. The -fverbose-asm option annotates the generated assembly with comments and original C source lines, among other details.</p>
 
 <table id='vimCodeElement'>
 <tr>
