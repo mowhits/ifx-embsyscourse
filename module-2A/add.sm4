@@ -1,0 +1,49 @@
+	.cpu cortex-m4
+	.arch armv7e-m
+	.fpu fpv4-sp-d16
+	.eabi_attribute 27, 1	@ Tag_ABI_HardFP_use
+	.eabi_attribute 28, 1	@ Tag_ABI_VFP_args
+	.eabi_attribute 20, 1	@ Tag_ABI_FP_denormal
+	.eabi_attribute 21, 1	@ Tag_ABI_FP_exceptions
+	.eabi_attribute 23, 3	@ Tag_ABI_FP_number_model
+	.eabi_attribute 24, 1	@ Tag_ABI_align8_needed
+	.eabi_attribute 25, 1	@ Tag_ABI_align8_preserved
+	.eabi_attribute 26, 1	@ Tag_ABI_enum_size
+	.eabi_attribute 30, 6	@ Tag_ABI_optimization_goals
+	.eabi_attribute 34, 1	@ Tag_CPU_unaligned_access
+	.eabi_attribute 18, 4	@ Tag_ABI_PCS_wchar_t
+	.file	"add.c"
+@ GNU C23 (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) version 15.2.1 20251203 (arm-none-eabi)
+@	compiled by GNU C version Apple LLVM 13.0.0 (clang-1300.0.29.30), GMP version 6.2.1, MPFR version 3.1.6, MPC version 1.0.3, isl version isl-0.15-1-g835ea3a-GMP
+
+@ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+@ options passed: -mcpu=cortex-m4 -mfloat-abi=hard -mthumb -march=armv7e-m+fp
+	.text
+	.align	1
+	.global	addf
+	.syntax unified
+	.thumb
+	.thumb_func
+	.type	addf, %function
+addf:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	@ link register save eliminated.
+	push	{r7}	@
+	sub	sp, sp, #12	@,,
+	add	r7, sp, #0	@,,
+	vstr.32	s0, [r7, #4]	@ a, a
+	vstr.32	s1, [r7]	@ b, b
+@ add.c:2:     return a + b;
+	vldr.32	s14, [r7, #4]	@ tmp116, a
+	vldr.32	s15, [r7]	@ tmp117, b
+	vadd.f32	s15, s14, s15	@ _3, tmp116, tmp117
+@ add.c:3: }
+	vmov.f32	s0, s15	@, <retval>
+	adds	r7, r7, #12	@,,
+	mov	sp, r7	@,
+	@ sp needed	@
+	pop	{r7}	@
+	bx	lr	@
+	.size	addf, .-addf
+	.ident	"GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203"
