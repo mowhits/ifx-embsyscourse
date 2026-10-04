@@ -1,4 +1,4 @@
 float acc;
-float addf(float a, float b) {
+float mac(float a, float b) {
     return acc + (a * b);
 }

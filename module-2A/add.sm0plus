@@ -17,6 +17,14 @@
 @ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 @ options passed: -mcpu=cortex-m0plus -mfloat-abi=soft -mthumb -march=armv6s-m
 	.text
+	.global	acc
+	.bss
+	.align	2
+	.type	acc, %object
+	.size	acc, 4
+acc:
+	.space	4
+	.text
 	.align	1
 	.global	addf
 	.syntax unified
@@ -31,17 +39,30 @@ addf:
 	add	r7, sp, #0	@,,
 	str	r0, [r7, #4]	@ a, a
 	str	r1, [r7]	@ b, b
-@ add.c:2:     return a + b;
+@ add.c:3:     return acc + (a * b);
 	ldr	r1, [r7]	@, b
 	ldr	r0, [r7, #4]	@, a
+	bl	__aeabi_fmul		@
+	adds	r3, r0, #0	@ _1,
+	adds	r2, r3, #0	@ _1, _1
+@ add.c:3:     return acc + (a * b);
+	ldr	r3, .L3	@ tmp119,
+	ldr	r3, [r3]	@ acc.0_2, acc
+	adds	r1, r3, #0	@, acc.0_2
+	adds	r0, r2, #0	@, _1
 	bl	__aeabi_fadd		@
-	adds	r3, r0, #0	@ _3,
-@ add.c:3: }
+	adds	r3, r0, #0	@ _6,
+@ add.c:4: }
 	adds	r0, r3, #0	@, <retval>
 	mov	sp, r7	@,
 	add	sp, sp, #8	@,,
 	@ sp needed	@
 	pop	{r7, pc}
+.L4:
+	.align	2
+.L3:
+	.word	acc
 	.size	addf, .-addf
 	.global	__aeabi_fadd
+	.global	__aeabi_fmul
 	.ident	"GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203"

@@ -19,6 +19,14 @@
 @ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 @ options passed: -mcpu=cortex-m4 -mfloat-abi=hard -mthumb -march=armv7e-m+fp
 	.text
+	.global	acc
+	.bss
+	.align	2
+	.type	acc, %object
+	.size	acc, 4
+acc:
+	.space	4
+	.text
 	.align	1
 	.global	addf
 	.syntax unified
@@ -34,16 +42,24 @@ addf:
 	add	r7, sp, #0	@,,
 	vstr.32	s0, [r7, #4]	@ a, a
 	vstr.32	s1, [r7]	@ b, b
-@ add.c:2:     return a + b;
-	vldr.32	s14, [r7, #4]	@ tmp116, a
-	vldr.32	s15, [r7]	@ tmp117, b
-	vadd.f32	s15, s14, s15	@ _3, tmp116, tmp117
-@ add.c:3: }
+@ add.c:3:     return acc + (a * b);
+	vldr.32	s14, [r7, #4]	@ tmp118, a
+	vldr.32	s15, [r7]	@ tmp119, b
+	vmul.f32	s14, s14, s15	@ _1, tmp118, tmp119
+@ add.c:3:     return acc + (a * b);
+	ldr	r3, .L3	@ tmp120,
+	vldr.32	s15, [r3]	@ acc.0_2, acc
+	vadd.f32	s15, s14, s15	@ _6, _1, acc.0_2
+@ add.c:4: }
 	vmov.f32	s0, s15	@, <retval>
 	adds	r7, r7, #12	@,,
 	mov	sp, r7	@,
 	@ sp needed	@
 	pop	{r7}	@
 	bx	lr	@
+.L4:
+	.align	2
+.L3:
+	.word	acc
 	.size	addf, .-addf
 	.ident	"GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203"

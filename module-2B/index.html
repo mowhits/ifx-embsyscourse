@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Module-2B assignment</title>
+<meta name="Generator" content="Vim/9.1">
+<meta name="plugin-version" content="vim9.0_v2">
+<meta name="settings" content="number_lines,whole_filler,use_css,no_foldcolumn,expand_tabs,line_ids,prevent_copy=,use_input_for_pc=none">
+<meta name="colorscheme" content="gruvbox">
+<style>
+<!--
+pre { font-family: monospace; color: #ebdbb2; background-color: #282828; }
+body { font-family: monospace; color: #ebdbb2; background-color: #282828; }
+* { font-size: 1em; }
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+h1, h2, h3 { color: #fabd2f; }
+a { color: #83a598; }
+a:hover { color: #8ec07c; }
+.LineNr { color: #7c6f64; }
+.DiffText { color: #282828; background-color: #fabd2f; }
+.DiffAdd { color: #282828; background-color: #b8bb26; }
+.DiffChange { color: #282828; background-color: #8ec07c; }
+.DiffDelete { color: #282828; background-color: #fb4934; }
+-->
+<!--
+table { table-layout: fixed; }
+html, body, table, tbody { width: 100%; margin: 0; padding: 0; }
+table, td, th { border: 1px solid; }
+td { vertical-align: top; }
+th, td { width: 50.0%; }
+td div { overflow: auto; }
+-->
+</style>
+<script>
+<!--
+
+/* function to open any folds containing a jumped-to line before jumping to it */
+function JumpToLine()
+{
+  var lineNum;
+  lineNum = window.location.hash;
+  lineNum = lineNum.substr(1); /* strip off '#' */
+
+  if (lineNum.indexOf('L') == -1) {
+    lineNum = 'L'+lineNum;
+  }
+  if (lineNum.indexOf('W') == -1) {
+    lineNum = 'W1'+lineNum;
+  }
+  var lineElem = document.getElementById(lineNum);
+  /* Always jump to new location even if the line was hidden inside a fold, or
+   * we corrected the raw number to a line ID.
+   */
+  if (lineElem) {
+    lineElem.scrollIntoView(true);
+  }
+  return true;
+}
+if ('onhashchange' in window) {
+  window.onhashchange = JumpToLine;
+}
+
+-->
+</script>
+</head>
+<body onload='JumpToLine();'>
+    <a href="/ifx-embsyscourse">return to root</a> | <a href="https://github.com/mowhits/ifx-embsyscourse/tree/main/module-2A">goto module files</a>
+
+    <p style="white-space:nowrap"><span class="DiffAdd"> Added </span> <span class="DiffChange"> Changed line </span> <span class="DiffText"> Changed text </span> <span class="DiffDelete"> Missing in this file </span></p>
+
+<h1> Module-2B: Optimization and Debugging options in gcc</h1>
+<p> Again, our add.c contains the function mac which performs a MAC operation on two floats.</p>
+<table style="width:50%">
+<tr>
+<th>add.c</th>
+</tr><tr>
+<td style="width:100%"><div>
+<pre>
+<span class="LineNr"> 1 </span>float acc;
+<span class="LineNr"> 2 </span>float mac(float a, float b) {
+<span class="LineNr"> 3 </span>        return acc + (a * b);
+<span class="LineNr"> 4 </span>}
+</pre>
+</div></td>
+</tr>
+</table>
+
+<p> We perform the usual compilation steps for a Cortex-M0+ target with soft floats. </p>
+
+<h3> 1F: Compare the dis-assembled output of Mac1.o and Mac2.o. How are they different from each other? What is your key-takeaway? </h3>
+<p> Using objdump, we can retrieve the contents of the section headers using the -h flag and the disassembled executable using the -d flag respectively. Running arm-none-eai-objdump -hd mac1.o (and mac2.o) we obtain the following:
+
+<table id='vimCodeElement'>
+<tr>
+<th>mac1.o</th>
+<th>mac2.o</th>
+</tr><tr>
+<td><div>
+<pre>
+<span id="W1L1" class="LineNr"> 1 </span>
+<span id="W1L2" class="LineNr"> 2 </span><span class="DiffChange">mac</span><span class="DiffText">1</span><span class="DiffChange">.o:     file format elf32-littlearm                                                                                        </span>
+<span id="W1L3" class="LineNr"> 3 </span>
+<span id="W1L4" class="LineNr"> 4 </span>Sections:
+<span id="W1L5" class="LineNr"> 5 </span>Idx Name          Size      VMA       LMA       File off  Algn
+<span id="W1L6" class="LineNr"> 6 </span><span class="DiffChange">  0 .text         000000</span><span class="DiffText">30</span><span class="DiffChange">  00000000  00000000  00000034  2**2                                                                 </span>
+<span id="W1L7" class="LineNr"> 7 </span>                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+<span id="W1L8" class="LineNr"> 8 </span><span class="DiffChange">  1 .data         00000000  00000000  00000000  000000</span><span class="DiffText">64</span><span class="DiffChange">  2**0                                                                 </span>
+<span id="W1L9" class="LineNr"> 9 </span>                  CONTENTS, ALLOC, LOAD, DATA
+<span id="W1L10" class="LineNr">10 </span><span class="DiffChange">  2 .bss          00000004  00000000  00000000  000000</span><span class="DiffText">64</span><span class="DiffChange">  2**2                                                                 </span>
+<span id="W1L11" class="LineNr">11 </span>                  ALLOC
+<span id="W1L12" class="LineNr">12 </span><span class="DiffChange">  3 .comment      00000046  00000000  00000000  000000</span><span class="DiffText">64</span><span class="DiffChange">  2**0                                                                 </span>
+<span id="W1L13" class="LineNr">13 </span>                  CONTENTS, READONLY
+<span id="W1L14" class="LineNr">14 </span><span class="DiffChange">  4 .ARM.attributes 0000002c  00000000  00000000  000000</span><span class="DiffText">aa</span><span class="DiffChange">  2**0                                                               </span>
+<span id="W1L15" class="LineNr">15 </span>                  CONTENTS, READONLY
+<span id="W1L16" class="LineNr">16 </span>
+<span id="W1L17" class="LineNr">17 </span>Disassembly of section .text:
+<span id="W1L18" class="LineNr">18 </span>
+<span id="W1L19" class="LineNr">19 </span>00000000 &lt;mac&gt;:
+<span id="W1L20" class="LineNr">20 </span><span class="DiffChange">   0:   b5</span><span class="DiffText">80        push    {r7</span><span class="DiffChange">, lr}                                                                                           </span>
+<span id="W1L21" class="LineNr">21 </span><span class="DiffChange">   2:   </span><span class="DiffText">b082        sub sp, #8</span><span class="DiffChange">                                                                                                 </span>
+<span id="W1L22" class="LineNr">22 </span><span class="DiffChange">   </span><span class="DiffText">4:   af00        add r7, sp, #0</span><span class="DiffChange">                                                                                             </span>
+<span id="W1L23" class="LineNr">23 </span><span class="DiffChange">   </span><span class="DiffText">6:   6078        str r0, [r7, #4</span><span class="DiffChange">]                                                                                           </span>
+<span id="W1L24" class="LineNr">24 </span><span class="DiffChange">   </span><span class="DiffText">8:   6039        str r1, [r7, #0]</span><span class="DiffChange">                                                                                           </span>
+<span id="W1L25" class="LineNr">25 </span><span class="DiffChange">   </span><span class="DiffText">a:   6839        ldr r1, [r7, #0]</span><span class="DiffChange">                                                                                           </span>
+<span id="W1L26" class="LineNr">26 </span><span class="DiffChange">  </span><span class="DiffText"> c:   6878        ldr r0, [r7, #4]</span><span class="DiffChange">                                                                                           </span>
+<span id="W1L27" class="LineNr">27 </span><span class="DiffAdd">   e:   f7ff fffe   bl  0 &lt;__aeabi_fmul&gt;</span><span class="DiffAdd">                                                                                       </span>
+<span id="W1L28" class="LineNr">28 </span><span class="DiffAdd">  12:   1c03        adds    r3, r0, #0</span><span class="DiffAdd">                                                                                         </span>
+<span id="W1L29" class="LineNr">29 </span><span class="DiffAdd">  14:   1c1a        adds    r2, r3, #0</span><span class="DiffAdd">                                                                                         </span>
+<span id="W1L30" class="LineNr">30 </span><span class="DiffAdd">  16:   4b05        ldr r3, [pc, #20]   @ (2c &lt;mac+0x2c&gt;)</span><span class="DiffAdd">                                                                      </span>
+<span id="W1L31" class="LineNr">31 </span><span class="DiffAdd">  18:   681b        ldr r3, [r3, #0]</span><span class="DiffAdd">                                                                                           </span>
+<span id="W1L32" class="LineNr">32 </span><span class="DiffAdd">  1a:   1c19        adds    r1, r3, #0</span><span class="DiffAdd">                                                                                         </span>
+<span id="W1L33" class="LineNr">33 </span><span class="DiffAdd">  1c:   1c10        adds    r0, r2, #0</span><span class="DiffAdd">                                                                                         </span>
+<span id="W1L34" class="LineNr">34 </span><span class="DiffAdd">  1e:   f7ff fffe   bl  0 &lt;__aeabi_fadd&gt;</span><span class="DiffAdd">                                                                                       </span>
+<span id="W1L35" class="LineNr">35 </span><span class="DiffAdd">  22:   1c03        adds    r3, r0, #0</span><span class="DiffAdd">                                                                                         </span>
+<span id="W1L36" class="LineNr">36 </span><span class="DiffAdd">  24:   1c18        adds    r0, r3, #0</span><span class="DiffAdd">                                                                                         </span>
+<span id="W1L37" class="LineNr">37 </span><span class="DiffAdd">  26:   46bd        mov sp, r7</span><span class="DiffAdd">                                                                                                 </span>
+<span id="W1L38" class="LineNr">38 </span><span class="DiffAdd">  28:   b002        add sp, #8</span><span class="DiffAdd">                                                                                                 </span>
+<span id="W1L39" class="LineNr">39 </span><span class="DiffAdd">  2a:   bd80        pop {r7, pc}</span><span class="DiffAdd">                                                                                               </span>
+<span id="W1L40" class="LineNr">40 </span><span class="DiffAdd">  2c:   00000000    .word   0x00000000</span><span class="DiffAdd">                                                                                         </span>
+</pre>
+</div></td>
+<td><div>
+<pre>
+<span id="W2L1" class="LineNr"> 1 </span>
+<span id="W2L2" class="LineNr"> 2 </span><span class="DiffChange">mac</span><span class="DiffText">2</span><span class="DiffChange">.o:     file format elf32-littlearm                                                                                        </span>
+<span id="W2L3" class="LineNr"> 3 </span>
+<span id="W2L4" class="LineNr"> 4 </span>Sections:
+<span id="W2L5" class="LineNr"> 5 </span>Idx Name          Size      VMA       LMA       File off  Algn
+<span id="W2L6" class="LineNr"> 6 </span><span class="DiffChange">  0 .text         000000</span><span class="DiffText">14</span><span class="DiffChange">  00000000  00000000  00000034  2**2                                                                 </span>
+<span id="W2L7" class="LineNr"> 7 </span>                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+<span id="W2L8" class="LineNr"> 8 </span><span class="DiffChange">  1 .data         00000000  00000000  00000000  000000</span><span class="DiffText">48</span><span class="DiffChange">  2**0                                                                 </span>
+<span id="W2L9" class="LineNr"> 9 </span>                  CONTENTS, ALLOC, LOAD, DATA
+<span id="W2L10" class="LineNr">10 </span><span class="DiffChange">  2 .bss          00000004  00000000  00000000  000000</span><span class="DiffText">48</span><span class="DiffChange">  2**2                                                                 </span>
+<span id="W2L11" class="LineNr">11 </span>                  ALLOC
+<span id="W2L12" class="LineNr">12 </span><span class="DiffChange">  3 .comment      00000046  00000000  00000000  000000</span><span class="DiffText">48</span><span class="DiffChange">  2**0                                                                 </span>
+<span id="W2L13" class="LineNr">13 </span>                  CONTENTS, READONLY
+<span id="W2L14" class="LineNr">14 </span><span class="DiffChange">  4 .ARM.attributes 0000002c  00000000  00000000  000000</span><span class="DiffText">8e</span><span class="DiffChange">  2**0                                                               </span>
+<span id="W2L15" class="LineNr">15 </span>                  CONTENTS, READONLY
+<span id="W2L16" class="LineNr">16 </span>
+<span id="W2L17" class="LineNr">17 </span>Disassembly of section .text:
+<span id="W2L18" class="LineNr">18 </span>
+<span id="W2L19" class="LineNr">19 </span>00000000 &lt;mac&gt;:
+<span id="W2L20" class="LineNr">20 </span><span class="DiffChange">   0:   b5</span><span class="DiffText">10        push    {r4</span><span class="DiffChange">, lr}                                                                                           </span>
+<span id="W2L21" class="LineNr">21 </span><span class="DiffChange">   2:   </span><span class="DiffText">f7ff fffe   bl  0 &lt;__aeabi_fmul&gt;</span><span class="DiffChange">                                                                                       </span>
+<span id="W2L22" class="LineNr">22 </span><span class="DiffChange">   </span><span class="DiffText">6:   4b02        ldr r3, [pc, #8]    @ (10 &lt;mac+0x10&gt;)</span><span class="DiffChange">                                                                      </span>
+<span id="W2L23" class="LineNr">23 </span><span class="DiffChange">   </span><span class="DiffText">8:   6819        ldr r1, [r3, #0</span><span class="DiffChange">]                                                                                           </span>
+<span id="W2L24" class="LineNr">24 </span><span class="DiffChange">   </span><span class="DiffText">a:   f7ff fffe   bl  0 &lt;__aeabi_fadd&gt;</span><span class="DiffChange">                                                                                       </span>
+<span id="W2L25" class="LineNr">25 </span><span class="DiffChange">   </span><span class="DiffText">e:   bd10        pop {r4, pc}</span><span class="DiffChange">                                                                                               </span>
+<span id="W2L26" class="LineNr">26 </span><span class="DiffChange">  </span><span class="DiffText">10:   00000000    .word   0x00000000</span><span class="DiffChange">                                                                                         </span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------</span>
+</pre>
+</div></td>
+</tr>
+</table>
+
+<p> Comparing the sizes of the .text section in mac1.o vs mac2.o, we notice that mac2 is nearly half the size of mac1. This is attributed to the optimize option -O2 used during compilation of mac2. -O2 is the second level of optimization, used to reduce code size and improve performance at the expense of compilation time and reduced debuggability. Reading the diff of the disassembly also supports the same. -O2 removes the stack frame and directly passes the arguments to __aeabi_fmul from registers r0 and r1 instead of pushing r0 and r1 to a stack and reloading them as seen in the unoptimized mac1.</p>
+
+<h3> 1G: Compare the dis-assembled outputs Mac1.o and Mac3.o. How are they different from each other? What did you learn here? </h3>
+
+<p> Again, looking at the section headers and disassembly: </p>
+
+<table id='vimCodeElement'>
+<tr>
+<th>mac1.head</th>
+<th>mac3.head</th>
+</tr><tr>
+<td><div>
+<pre>
+<span id="W1L1" class="LineNr"> 1 </span>
+<span id="W1L2" class="LineNr"> 2 </span><span class="DiffChange">mac</span><span class="DiffText">1</span><span class="DiffChange">.o:     file format elf32-littlearm                                                                                                                                        </span>
+<span id="W1L3" class="LineNr"> 3 </span>
+<span id="W1L4" class="LineNr"> 4 </span>Sections:
+<span id="W1L5" class="LineNr"> 5 </span>Idx Name          Size      VMA       LMA       File off  Algn
+<span id="W1L6" class="LineNr"> 6 </span>  0 .text         00000030  00000000  00000000  00000034  2**2
+<span id="W1L7" class="LineNr"> 7 </span>                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+<span id="W1L8" class="LineNr"> 8 </span>  1 .data         00000000  00000000  00000000  00000064  2**0
+<span id="W1L9" class="LineNr"> 9 </span>                  CONTENTS, ALLOC, LOAD, DATA
+<span id="W1L10" class="LineNr">10 </span>  2 .bss          00000004  00000000  00000000  00000064  2**2
+<span id="W1L11" class="LineNr">11 </span>                  ALLOC
+<span id="W1L12" class="LineNr">12 </span><span class="DiffChange">  3 .</span><span class="DiffText">comment      00000046</span><span class="DiffChange">  00000000  00000000  00000064  2**0                                                                                                                 </span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span id="W1L13" class="LineNr">13 </span>                  CONTENTS, READONLY
+<span id="W1L14" class="LineNr">14 </span><span class="DiffChange">  </span><span class="DiffText">4 .ARM.attributes 0000002c  00000000  00000000  000000aa  2**0</span><span class="DiffChange">                                                                                                               </span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span id="W1L15" class="LineNr">15 </span>                 CONTENTS, READONLY
+<span id="W1L16" class="LineNr">16 </span>
+<span id="W1L17" class="LineNr">17 </span>Disassembly of section .text:
+<span id="W1L18" class="LineNr">18 </span>
+<span id="W1L19" class="LineNr">19 </span>00000000 &lt;mac&gt;:
+<span id="W1L20" class="LineNr">20 </span>   0:   b580        push    {r7, lr}
+<span id="W1L21" class="Folded">21 </span><span class="Folded">+-- 20 lines: 2: b082       sub sp, #8--------------------------------------------------------------------------------------------------------------------------------------------</span>
+</pre>
+</div></td>
+<td><div>
+<pre>
+<span id="W2L1" class="LineNr"> 1 </span>
+<span id="W2L2" class="LineNr"> 2 </span><span class="DiffChange">mac</span><span class="DiffText">3</span><span class="DiffChange">.o:     file format elf32-littlearm                                                                                                                                        </span>
+<span id="W2L3" class="LineNr"> 3 </span>
+<span id="W2L4" class="LineNr"> 4 </span>Sections:
+<span id="W2L5" class="LineNr"> 5 </span>Idx Name          Size      VMA       LMA       File off  Algn
+<span id="W2L6" class="LineNr"> 6 </span>  0 .text         00000030  00000000  00000000  00000034  2**2
+<span id="W2L7" class="LineNr"> 7 </span>                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+<span id="W2L8" class="LineNr"> 8 </span>  1 .data         00000000  00000000  00000000  00000064  2**0
+<span id="W2L9" class="LineNr"> 9 </span>                  CONTENTS, ALLOC, LOAD, DATA
+<span id="W2L10" class="LineNr">10 </span>  2 .bss          00000004  00000000  00000000  00000064  2**2
+<span id="W2L11" class="LineNr">11 </span>                  ALLOC
+<span id="W2L12" class="LineNr">12 </span><span class="DiffChange">  3 .</span><span class="DiffText">debug_info   00000072</span><span class="DiffChange">  00000000  00000000  00000064  2**0                                                                                                                 </span>
+<span id="W2L13" class="LineNr">13 </span><span class="DiffAdd">                  CONTENTS, RELOC, READONLY, DEBUGGING, OCTETS</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L14" class="LineNr">14 </span><span class="DiffAdd">  4 .debug_abbrev 00000066  00000000  00000000  000000d6  2**0</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L15" class="LineNr">15 </span><span class="DiffAdd">                  CONTENTS, READONLY, DEBUGGING, OCTETS</span><span class="DiffAdd">                                                                                                                        </span>
+<span id="W2L16" class="LineNr">16 </span><span class="DiffAdd">  5 .debug_aranges 00000020  00000000  00000000  0000013c  2**0</span><span class="DiffAdd">                                                                                                                </span>
+<span id="W2L17" class="LineNr">17 </span><span class="DiffAdd">                  CONTENTS, RELOC, READONLY, DEBUGGING, OCTETS</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L18" class="LineNr">18 </span><span class="DiffAdd">  6 .debug_line   0000003e  00000000  00000000  0000015c  2**0</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L19" class="LineNr">19 </span><span class="DiffAdd">                  CONTENTS, RELOC, READONLY, DEBUGGING, OCTETS</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L20" class="LineNr">20 </span><span class="DiffAdd">  7 .debug_str    00000094  00000000  00000000  0000019a  2**0</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L21" class="LineNr">21 </span><span class="DiffAdd">                  CONTENTS, READONLY, DEBUGGING, OCTETS</span><span class="DiffAdd">                                                                                                                        </span>
+<span id="W2L22" class="LineNr">22 </span><span class="DiffAdd">  8 .comment      00000046  00000000  00000000  0000022e  2**0</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L23" class="LineNr">23 </span>                  CONTENTS, READONLY
+<span id="W2L24" class="LineNr">24 </span><span class="DiffChange">  </span><span class="DiffText">9 .debug_frame  00000030  00000000  00000000  00000274  2**2</span><span class="DiffChange">                                                                                                                 </span>
+<span id="W2L25" class="LineNr">25 </span><span class="DiffAdd">                  CONTENTS, RELOC, READONLY, DEBUGGING, OCTETS</span><span class="DiffAdd">                                                                                                                 </span>
+<span id="W2L26" class="LineNr">26 </span><span class="DiffAdd"> 10 .ARM.attributes 0000002c  00000000  00000000  000002a4  2**0</span><span class="DiffAdd">                                                                                                               </span>
+<span id="W2L27" class="LineNr">27 </span>                  CONTENTS, READONLY
+<span id="W2L28" class="LineNr">28 </span>
+<span id="W2L29" class="LineNr">29 </span>Disassembly of section .text:
+<span id="W2L30" class="LineNr">30 </span>
+<span id="W2L31" class="LineNr">31 </span>00000000 &lt;mac&gt;:
+<span id="W2L32" class="LineNr">32 </span>   0:   b580        push    {r7, lr}
+<span id="W2L33" class="Folded">33 </span><span class="Folded">+-- 20 lines: 2: b082       sub sp, #8--------------------------------------------------------------------------------------------------------------------------------------------</span>
+</pre>
+</div></td>
+</tr>
+</table>
+
+<p> We notice that mac3 has a lot more sections (.debug_info, .debug_str, etc.) than mac1. This is attributed to the debug option -g. -g instructs gcc to produce debug info that debuggers such as gdb can use. This however doesn't change the disassembly of mac3, as the debug info is typically encoded in a binary format such as DWARF or stabs. In order to view this debug info, we need a decoder to dump the debug sections. This is achieved using the -W option on objdump. We notice that using this option on mac1.o outputs nothing, since we did not pass the -g option and generate debug info for mac1. Meanwhile, following is a small snippet of the decoded debug info from mac3.</p>
+
+<table id="vimCodeElement" style="width:50%">
+    <tr><th>mac3</th></tr>
+    <tr><td style="width:100%"><div><pre><span id="L1" class="LineNr"> 1 </span>
+<span id="L2" class="LineNr"> 2 </span>mac3.o:     file format elf32-littlearm
+<span id="L3" class="LineNr"> 3 </span>
+<span id="L4" class="LineNr"> 4 </span>Contents of the .debug_info section:
+<span id="L5" class="LineNr"> 5 </span>
+<span id="L6" class="LineNr"> 6 </span>  Compilation Unit @ offset 0:
+<span id="L7" class="LineNr"> 7 </span>   Length:        0x6e (32-bit)
+<span id="L8" class="LineNr"> 8 </span>   Version:       5
+<span id="L9" class="LineNr"> 9 </span>   Unit Type:     DW_UT_compile (1)
+<span id="L10" class="LineNr">10 </span>   Abbrev Offset: 0
+<span id="L11" class="LineNr">11 </span>   Pointer Size:  4
+<span id="L12" class="LineNr">12 </span> &lt;0&gt;&lt;c&gt;: Abbrev Number: 2 (DW_TAG_compile_unit)
+<span id="L13" class="LineNr">13 </span>    &lt;d&gt;   DW_AT_producer    : (indirect string, offset: 0x6): GNU C23 15.2.1 20251203 -mcpu=cortex-m0plus -mfloat-abi=soft -mthumb -march=armv6s-m -g
+<span id="L14" class="LineNr">14 </span>    &lt;11&gt;   DW_AT_language    : 29   (C11)
+<span id="L15" class="LineNr">15 </span>    &lt;12&gt;   Unknown AT value: 90: 3
+<span id="L16" class="LineNr">16 </span>    &lt;13&gt;   Unknown AT value: 91: 0x31647
+<span id="L17" class="LineNr">17 </span>    &lt;17&gt;   DW_AT_name        : (indirect string, offset: 0x5e): add.c
+<span id="L18" class="LineNr">18 </span>    &lt;1b&gt;   DW_AT_comp_dir    : (indirect string, offset: 0x64): /module-2b
+<span id="L19" class="LineNr">19 </span>    &lt;1f&gt;   DW_AT_low_pc      : 0
+<span id="L20" class="LineNr">20 </span>    &lt;23&gt;   DW_AT_high_pc     : 0x30
+<span id="L21" class="LineNr">21 </span>    &lt;27&gt;   DW_AT_stmt_list   : 0</pre></div></td></tr>
+</table>
+
+<h3> 1H: How is the dis-assembled output of Mac4.o different from Mac2.o? </h3>
+Same as above -- passing the -g option at compile creates debug sections to store debug information. gcc is unique in that it is one of the few compilers to support usage of -g with optimize options such as -O2 in this case. This allows us to debug optimized code.
+
+<h3> 2D: Write a simple linker script for this MCU by referring to the linker script taught in the class today.</h3>
+
+

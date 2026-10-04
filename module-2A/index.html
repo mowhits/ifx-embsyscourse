@@ -78,9 +78,10 @@ if ('onhashchange' in window) {
 </tr><tr>
 <td style="width:100%"><div>
 <pre>
-<span class="LineNr"> 1 </span>float addf(float a, float b) {
-<span class="LineNr"> 2 </span>        return a + b;
-<span class="LineNr"> 3 </span>}
+<span class="LineNr"> 1 </span>float acc;
+<span class="LineNr"> 2 </span>float mac(float a, float b) {
+<span class="LineNr"> 3 </span>        return acc + (a * b);
+<span class="LineNr"> 4 </span>}
 </pre>
 </div></td>
 </tr>
@@ -91,10 +92,10 @@ Starting with the compiler options used to generate the assembly files for the t
     <li> <b>add.sm0plus</b>: arm-none-eabi-gcc -S -fverbose-asm -mcpu=<span class="DiffChange">cortex-m0plus</span> add.c -o add.sm0plus</li> 
     <li> <b>add.sm4</b>: arm-none-eabi-gcc -S -fverbose-asm -mcpu=<span class="DiffChange">cortex-m4</span> <span class="DiffAdd">-mfloat-abi=hard</span> add.c -o add.sm4</li>
 </ol>
-The -mcpu option is set according to the target CPU (Cortex-M0+ and Cortex-M4). The -mfloat-abi option is set to hard for the M4 and defaults to soft for the M0+. -mfloat-abi=hard directs gcc to emit instructions for the M4's on-chip floating point unit (named fpv4-sp-d16, as seen in the assembler directives) and pass floats to the FPU registers. -mfloat-abi=soft directs gcc to emit calls to floating point software emulation routines (__aeabi_fadd, in this case). These routines perform IEEE 754 operations using integer instructions for cores without FPUs, such as the M0+ in this scenario.
+The -mcpu option is set according to the target CPU (Cortex-M0+ and Cortex-M4). The -mfloat-abi option is set to hard for the M4 and defaults to soft for the M0+. -mfloat-abi=hard directs gcc to emit instructions for the M4's on-chip floating point unit (named fpv4-sp-d16, as seen in the assembler directives) and pass floats to the FPU registers. -mfloat-abi=soft directs gcc to emit calls to floating point software emulation routines (__aeabi_fadd and __aeabi_fmul, in this case). These routines perform IEEE 754 operations using integer instructions for cores without FPUs, such as the M0+ in this scenario.
 </p>
 
-<p>The diff provides a clear view of the differences in instructions due to the options chosen. For instance, the asm for M4 contains vldr and vadd, which are the FPU's load and add instructions respectively, while for M0+ the asm simply instructs the core to call __aeabi_fadd, the software float-add routine. The -fverbose-asm option annotates the generated assembly with comments and original C source lines, among other details.</p>
+<p>The diff provides a clear view of the differences in instructions due to the options chosen. For instance, the asm for M4 contains vldr, vadd and vmul, which are the FPU's load, add and mul instructions for FP numbers, while for M0+ the asm simply instructs the core to call __aeabi_fadd and __aeabi_fmul, the software float-add and mul routines. The -fverbose-asm option annotates the generated assembly with comments and original C source lines, among other details.</p>
 
 <table id='vimCodeElement'>
 <tr>
@@ -124,37 +125,58 @@ The -mcpu option is set according to the target CPU (Cortex-M0+ and Cortex-M4). 
 <span id="W1L17" class="LineNr">17 </span>@ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 <span id="W1L18" class="LineNr">18 </span><span class="DiffChange">@ options passed: -mcpu=cortex-m</span><span class="DiffText">0plus -mfloat-abi=soft -mthumb -march=armv6s-m</span><span class="DiffChange">                                                                                                 </span>
 <span id="W1L19" class="LineNr">19 </span>    .text
-<span id="W1L20" class="LineNr">20 </span>    .align  1
-<span id="W1L21" class="LineNr">21 </span>    .global addf
-<span id="W1L22" class="LineNr">22 </span>    .syntax unified
-<span id="W1L23" class="LineNr">23 </span><span class="DiffChange">    .</span><span class="DiffText">code   16</span><span class="DiffChange">                                                                                                                                                                 </span>
-<span id="W1L24" class="LineNr">24 </span>    .thumb_func
-<span id="W1L25" class="LineNr">25 </span>    .type   addf, %function
-<span id="W1L26" class="LineNr">26 </span>addf:
-<span id="W1L27" class="LineNr">27 </span>    @ args = 0, pretend = 0, frame = 8
-<span id="W1L28" class="LineNr">28 </span>    @ frame_needed = 1, uses_anonymous_args = 0
-<span id="W1L29" class="LineNr">29 </span><span class="DiffChange">    </span><span class="DiffText">push    {r7, lr}    @</span><span class="DiffChange">                                                                                                                                                      </span>
-<span id="W1L30" class="LineNr">30 </span><span class="DiffChange">    </span><span class="DiffText">sub sp, sp, #8  @,,</span><span class="DiffChange">                                                                                                                                                        </span>
+<span id="W1L20" class="LineNr">20 </span>    .global acc
+<span id="W1L21" class="LineNr">21 </span>    .bss
+<span id="W1L22" class="LineNr">22 </span>    .align  2
+<span id="W1L23" class="LineNr">23 </span>    .type   acc, %object
+<span id="W1L24" class="LineNr">24 </span>    .size   acc, 4
+<span id="W1L25" class="LineNr">25 </span>acc:
+<span id="W1L26" class="LineNr">26 </span>    .space  4
+<span id="W1L27" class="LineNr">27 </span>    .text
+<span id="W1L28" class="LineNr">28 </span>    .align  1
+<span id="W1L29" class="LineNr">29 </span>    .global addf
+<span id="W1L30" class="LineNr">30 </span>    .syntax unified
+<span id="W1L31" class="LineNr">31 </span><span class="DiffChange">    .</span><span class="DiffText">code   16</span><span class="DiffChange">                                                                                                                                                                 </span>
+<span id="W1L32" class="LineNr">32 </span>    .thumb_func
+<span id="W1L33" class="LineNr">33 </span>    .type   addf, %function
+<span id="W1L34" class="LineNr">34 </span>addf:
+<span id="W1L35" class="LineNr">35 </span>    @ args = 0, pretend = 0, frame = 8
+<span id="W1L36" class="LineNr">36 </span>    @ frame_needed = 1, uses_anonymous_args = 0
+<span id="W1L37" class="LineNr">37 </span><span class="DiffChange">    </span><span class="DiffText">push    {r7, lr}    @</span><span class="DiffChange">                                                                                                                                                      </span>
+<span id="W1L38" class="LineNr">38 </span><span class="DiffChange">    </span><span class="DiffText">sub sp, sp, #8  @,,</span><span class="DiffChange">                                                                                                                                                        </span>
 <span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
-<span id="W1L31" class="LineNr">31 </span>    add r7, sp, #0  @,,
-<span id="W1L32" class="LineNr">32 </span><span class="DiffChange">    </span><span class="DiffText">str r</span><span class="DiffChange">0, [r7, #4]    @ a, a                                                                                                                                                 </span>
-<span id="W1L33" class="LineNr">33 </span><span class="DiffChange">    </span><span class="DiffText">str r</span><span class="DiffChange">1, [r7]    @ b, b                                                                                                                                                     </span>
-<span id="W1L34" class="LineNr">34 </span>@ add.c:2:     return a + b;
-<span id="W1L35" class="LineNr">35 </span><span class="DiffChange">    </span><span class="DiffText">ldr r1, [r7]    @, b</span><span class="DiffChange">                                                                                                                                                       </span>
-<span id="W1L36" class="LineNr">36 </span><span class="DiffChange">    </span><span class="DiffText">ldr r0, [r7, #4]    @, a</span><span class="DiffChange">                                                                                                                                                   </span>
-<span id="W1L37" class="LineNr">37 </span><span class="DiffChange">    </span><span class="DiffText">bl  __aeabi_fadd        @</span><span class="DiffChange">                                                                                                                                                  </span>
-<span id="W1L38" class="LineNr">38 </span><span class="DiffAdd">    adds    r3, r0, #0  @ _3,</span><span class="DiffAdd">                                                                                                                                                  </span>
-<span id="W1L39" class="LineNr">39 </span>@ add.c:3: }
-<span id="W1L40" class="LineNr">40 </span><span class="DiffChange">    </span><span class="DiffText">adds    r0, r3, #0</span><span class="DiffChange">  @, &lt;retval&gt;                                                                                                                                            </span>
+<span id="W1L39" class="LineNr">39 </span>    add r7, sp, #0  @,,
+<span id="W1L40" class="LineNr">40 </span><span class="DiffChange">    </span><span class="DiffText">str r</span><span class="DiffChange">0, [r7, #4]    @ a, a                                                                                                                                                 </span>
+<span id="W1L41" class="LineNr">41 </span><span class="DiffChange">    </span><span class="DiffText">str r</span><span class="DiffChange">1, [r7]    @ b, b                                                                                                                                                     </span>
+<span id="W1L42" class="LineNr">42 </span>@ add.c:3:     return acc + (a * b);
+<span id="W1L43" class="LineNr">43 </span><span class="DiffChange">    </span><span class="DiffText">ldr r1, [r7]    @, b</span><span class="DiffChange">                                                                                                                                                       </span>
+<span id="W1L44" class="LineNr">44 </span><span class="DiffChange">    </span><span class="DiffText">ldr r0, [r7, #4]    @, a</span><span class="DiffChange">                                                                                                                                                   </span>
+<span id="W1L45" class="LineNr">45 </span><span class="DiffChange">    </span><span class="DiffText">bl  __aeabi_fmul        @</span><span class="DiffChange">                                                                                                                                                  </span>
+<span id="W1L46" class="LineNr">46 </span><span class="DiffAdd">    adds    r3, r0, #0  @ _1,</span><span class="DiffAdd">                                                                                                                                                  </span>
+<span id="W1L47" class="LineNr">47 </span><span class="DiffAdd">    adds    r2, r3, #0  @ _1, _1</span><span class="DiffAdd">                                                                                                                                               </span>
+<span id="W1L48" class="LineNr">48 </span>@ add.c:3:     return acc + (a * b);
+<span id="W1L49" class="LineNr">49 </span><span class="DiffChange">    ldr r3, .L3 @ tmp1</span><span class="DiffText">19</span><span class="DiffChange">,                                                                                                                                                      </span>
+<span id="W1L50" class="LineNr">50 </span><span class="DiffChange">    </span><span class="DiffText">ldr r3</span><span class="DiffChange">, [r3]    @ acc.0_2, acc                                                                                                                                             </span>
+<span id="W1L51" class="LineNr">51 </span><span class="DiffChange">    </span><span class="DiffText">adds    r1, r3, #0  @</span><span class="DiffChange">, acc.0_2                                                                                                                                             </span>
+<span id="W1L52" class="LineNr">52 </span><span class="DiffAdd">    adds    r0, r2, #0  @, _1</span><span class="DiffAdd">                                                                                                                                                  </span>
+<span id="W1L53" class="LineNr">53 </span><span class="DiffAdd">    bl  __aeabi_fadd        @</span><span class="DiffAdd">                                                                                                                                                  </span>
+<span id="W1L54" class="LineNr">54 </span><span class="DiffAdd">    adds    r3, r0, #0  @ _6,</span><span class="DiffAdd">                                                                                                                                                  </span>
+<span id="W1L55" class="LineNr">55 </span>@ add.c:4: }
+<span id="W1L56" class="LineNr">56 </span><span class="DiffChange">    </span><span class="DiffText">adds    r0, r3, #0</span><span class="DiffChange">  @, &lt;retval&gt;                                                                                                                                            </span>
 <span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
-<span id="W1L41" class="LineNr">41 </span>    mov sp, r7  @,
-<span id="W1L42" class="LineNr">42 </span><span class="DiffAdd">    add sp, sp, #8  @,,</span><span class="DiffAdd">                                                                                                                                                        </span>
-<span id="W1L43" class="LineNr">43 </span>    @ sp needed @
-<span id="W1L44" class="LineNr">44 </span><span class="DiffChange">    pop {r7</span><span class="DiffText">, pc}</span><span class="DiffChange">                                                                                                                                                               </span>
+<span id="W1L57" class="LineNr">57 </span>    mov sp, r7  @,
+<span id="W1L58" class="LineNr">58 </span><span class="DiffAdd">    add sp, sp, #8  @,,</span><span class="DiffAdd">                                                                                                                                                        </span>
+<span id="W1L59" class="LineNr">59 </span>    @ sp needed @
+<span id="W1L60" class="LineNr">60 </span><span class="DiffChange">    pop {r7</span><span class="DiffText">, pc}</span><span class="DiffChange">                                                                                                                                                               </span>
 <span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
-<span id="W1L45" class="LineNr">45 </span>    .size   addf, .-addf
-<span id="W1L46" class="LineNr">46 </span><span class="DiffAdd">    .global __aeabi_fadd</span><span class="DiffAdd">                                                                                                                                                       </span>
-<span id="W1L47" class="LineNr">47 </span>    .ident  &quot;GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203&quot;
+<span id="W1L61" class="LineNr">61 </span>.L4:
+<span id="W1L62" class="LineNr">62 </span>    .align  2
+<span id="W1L63" class="LineNr">63 </span>.L3:
+<span id="W1L64" class="LineNr">64 </span>    .word   acc
+<span id="W1L65" class="LineNr">65 </span>    .size   addf, .-addf
+<span id="W1L66" class="LineNr">66 </span><span class="DiffAdd">    .global __aeabi_fadd</span><span class="DiffAdd">                                                                                                                                                       </span>
+<span id="W1L67" class="LineNr">67 </span><span class="DiffAdd">    .global __aeabi_fmul</span><span class="DiffAdd">                                                                                                                                                       </span>
+<span id="W1L68" class="LineNr">68 </span>    .ident  &quot;GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203&quot;
 </pre>
 </div></td>
 <td><div>
@@ -180,42 +202,62 @@ The -mcpu option is set according to the target CPU (Cortex-M0+ and Cortex-M4). 
 <span id="W2L19" class="LineNr">19 </span>@ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 <span id="W2L20" class="LineNr">20 </span><span class="DiffChange">@ options passed: -mcpu=cortex-m</span><span class="DiffText">4 -mfloat-abi=hard -mthumb -march=armv7e-m+fp</span><span class="DiffChange">                                                                                                  </span>
 <span id="W2L21" class="LineNr">21 </span>    .text
-<span id="W2L22" class="LineNr">22 </span>    .align  1
-<span id="W2L23" class="LineNr">23 </span>    .global addf
-<span id="W2L24" class="LineNr">24 </span>    .syntax unified
-<span id="W2L25" class="LineNr">25 </span><span class="DiffChange">    .</span><span class="DiffText">thumb</span><span class="DiffChange">                                                                                                                                                                     </span>
-<span id="W2L26" class="LineNr">26 </span>    .thumb_func
-<span id="W2L27" class="LineNr">27 </span>    .type   addf, %function
-<span id="W2L28" class="LineNr">28 </span>addf:
-<span id="W2L29" class="LineNr">29 </span>    @ args = 0, pretend = 0, frame = 8
-<span id="W2L30" class="LineNr">30 </span>    @ frame_needed = 1, uses_anonymous_args = 0
-<span id="W2L31" class="LineNr">31 </span><span class="DiffChange">    </span><span class="DiffText">@ link register save eliminated.</span><span class="DiffChange">                                                                                                                                           </span>
-<span id="W2L32" class="LineNr">32 </span><span class="DiffChange">    </span><span class="DiffText">push    {r7}    @</span><span class="DiffChange">                                                                                                                                                          </span>
-<span id="W2L33" class="LineNr">33 </span><span class="DiffAdd">    sub sp, sp, #12 @,,</span><span class="DiffAdd">                                                                                                                                                        </span>
-<span id="W2L34" class="LineNr">34 </span>    add r7, sp, #0  @,,
-<span id="W2L35" class="LineNr">35 </span><span class="DiffChange">    </span><span class="DiffText">vstr.32 s</span><span class="DiffChange">0, [r7, #4]    @ a, a                                                                                                                                             </span>
-<span id="W2L36" class="LineNr">36 </span><span class="DiffChange">    </span><span class="DiffText">vstr.32 s</span><span class="DiffChange">1, [r7]    @ b, b                                                                                                                                                 </span>
-<span id="W2L37" class="LineNr">37 </span>@ add.c:2:     return a + b;
-<span id="W2L38" class="LineNr">38 </span><span class="DiffChange">    </span><span class="DiffText">vldr.32 s14, [r7, #4]   @ tmp116, a</span><span class="DiffChange">                                                                                                                                        </span>
-<span id="W2L39" class="LineNr">39 </span><span class="DiffChange">    </span><span class="DiffText">vldr.32 s15, [r7]   @ tmp117, b</span><span class="DiffChange">                                                                                                                                            </span>
-<span id="W2L40" class="LineNr">40 </span><span class="DiffChange">    </span><span class="DiffText">vadd.f32    s15, s14, s15   @ _3, tmp116, tmp117</span><span class="DiffChange">                                                                                                                           </span>
+<span id="W2L22" class="LineNr">22 </span>    .global acc
+<span id="W2L23" class="LineNr">23 </span>    .bss
+<span id="W2L24" class="LineNr">24 </span>    .align  2
+<span id="W2L25" class="LineNr">25 </span>    .type   acc, %object
+<span id="W2L26" class="LineNr">26 </span>    .size   acc, 4
+<span id="W2L27" class="LineNr">27 </span>acc:
+<span id="W2L28" class="LineNr">28 </span>    .space  4
+<span id="W2L29" class="LineNr">29 </span>    .text
+<span id="W2L30" class="LineNr">30 </span>    .align  1
+<span id="W2L31" class="LineNr">31 </span>    .global addf
+<span id="W2L32" class="LineNr">32 </span>    .syntax unified
+<span id="W2L33" class="LineNr">33 </span><span class="DiffChange">    .</span><span class="DiffText">thumb</span><span class="DiffChange">                                                                                                                                                                     </span>
+<span id="W2L34" class="LineNr">34 </span>    .thumb_func
+<span id="W2L35" class="LineNr">35 </span>    .type   addf, %function
+<span id="W2L36" class="LineNr">36 </span>addf:
+<span id="W2L37" class="LineNr">37 </span>    @ args = 0, pretend = 0, frame = 8
+<span id="W2L38" class="LineNr">38 </span>    @ frame_needed = 1, uses_anonymous_args = 0
+<span id="W2L39" class="LineNr">39 </span><span class="DiffChange">    </span><span class="DiffText">@ link register save eliminated.</span><span class="DiffChange">                                                                                                                                           </span>
+<span id="W2L40" class="LineNr">40 </span><span class="DiffChange">    </span><span class="DiffText">push    {r7}    @</span><span class="DiffChange">                                                                                                                                                          </span>
+<span id="W2L41" class="LineNr">41 </span><span class="DiffAdd">    sub sp, sp, #12 @,,</span><span class="DiffAdd">                                                                                                                                                        </span>
+<span id="W2L42" class="LineNr">42 </span>    add r7, sp, #0  @,,
+<span id="W2L43" class="LineNr">43 </span><span class="DiffChange">    </span><span class="DiffText">vstr.32 s</span><span class="DiffChange">0, [r7, #4]    @ a, a                                                                                                                                             </span>
+<span id="W2L44" class="LineNr">44 </span><span class="DiffChange">    </span><span class="DiffText">vstr.32 s</span><span class="DiffChange">1, [r7]    @ b, b                                                                                                                                                 </span>
+<span id="W2L45" class="LineNr">45 </span>@ add.c:3:     return acc + (a * b);
+<span id="W2L46" class="LineNr">46 </span><span class="DiffChange">    </span><span class="DiffText">vldr.32 s14, [r7, #4]   @ tmp118, a</span><span class="DiffChange">                                                                                                                                        </span>
+<span id="W2L47" class="LineNr">47 </span><span class="DiffChange">    </span><span class="DiffText">vldr.32 s15, [r7]   @ tmp119, b</span><span class="DiffChange">                                                                                                                                            </span>
+<span id="W2L48" class="LineNr">48 </span><span class="DiffChange">    </span><span class="DiffText">vmul.f32    s14, s14, s15   @ _1, tmp118, tmp119</span><span class="DiffChange">                                                                                                                           </span>
 <span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
-<span id="W2L41" class="LineNr">41 </span>@ add.c:3: }
-<span id="W2L42" class="LineNr">42 </span><span class="DiffChange">    </span><span class="DiffText">vmov.f32    s0, s15</span><span class="DiffChange"> @, &lt;retval&gt;                                                                                                                                            </span>
-<span id="W2L43" class="LineNr">43 </span><span class="DiffAdd">    adds    r7, r7, #12 @,,</span><span class="DiffAdd">                                                                                                                                                    </span>
-<span id="W2L44" class="LineNr">44 </span>    mov sp, r7  @,
 <span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
-<span id="W2L45" class="LineNr">45 </span>    @ sp needed @
-<span id="W2L46" class="LineNr">46 </span><span class="DiffChange">    pop {r7</span><span class="DiffText">}    @</span><span class="DiffChange">                                                                                                                                                              </span>
-<span id="W2L47" class="LineNr">47 </span><span class="DiffAdd">    bx  lr  @</span><span class="DiffAdd">                                                                                                                                                                  </span>
-<span id="W2L48" class="LineNr">48 </span>    .size   addf, .-addf
+<span id="W2L49" class="LineNr">49 </span>@ add.c:3:     return acc + (a * b);
+<span id="W2L50" class="LineNr">50 </span><span class="DiffChange">    ldr r3, .L3 @ tmp1</span><span class="DiffText">20</span><span class="DiffChange">,                                                                                                                                                      </span>
+<span id="W2L51" class="LineNr">51 </span><span class="DiffChange">    </span><span class="DiffText">vldr.32 s15</span><span class="DiffChange">, [r3]   @ acc.0_2, acc                                                                                                                                         </span>
+<span id="W2L52" class="LineNr">52 </span><span class="DiffChange">    </span><span class="DiffText">vadd.f32    s15, s14, s15   @ _6, _1</span><span class="DiffChange">, acc.0_2                                                                                                                              </span>
 <span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
-<span id="W2L49" class="LineNr">49 </span>    .ident  &quot;GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203&quot;
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span id="W2L53" class="LineNr">53 </span>@ add.c:4: }
+<span id="W2L54" class="LineNr">54 </span><span class="DiffChange">    </span><span class="DiffText">vmov.f32    s0, s15</span><span class="DiffChange"> @, &lt;retval&gt;                                                                                                                                            </span>
+<span id="W2L55" class="LineNr">55 </span><span class="DiffAdd">    adds    r7, r7, #12 @,,</span><span class="DiffAdd">                                                                                                                                                    </span>
+<span id="W2L56" class="LineNr">56 </span>    mov sp, r7  @,
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span id="W2L57" class="LineNr">57 </span>    @ sp needed @
+<span id="W2L58" class="LineNr">58 </span><span class="DiffChange">    pop {r7</span><span class="DiffText">}    @</span><span class="DiffChange">                                                                                                                                                              </span>
+<span id="W2L59" class="LineNr">59 </span><span class="DiffAdd">    bx  lr  @</span><span class="DiffAdd">                                                                                                                                                                  </span>
+<span id="W2L60" class="LineNr">60 </span>.L4:
+<span id="W2L61" class="LineNr">61 </span>    .align  2
+<span id="W2L62" class="LineNr">62 </span>.L3:
+<span id="W2L63" class="LineNr">63 </span>    .word   acc
+<span id="W2L64" class="LineNr">64 </span>    .size   addf, .-addf
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="LineNr">   </span><span class="DiffDelete">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span id="W2L65" class="LineNr">65 </span>    .ident  &quot;GCC: (Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)) 15.2.1 20251203&quot;
 </pre>
 </div></td>
 </tr>
 </table>
-
 </body>
 </html>
 <!-- vim: set foldmethod=manual : -->
