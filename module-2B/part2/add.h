@@ -1,1 +1,2 @@
-float addf (float a, float b);
+void mac_init(void);
+float mac(float a, float b);

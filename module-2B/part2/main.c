@@ -19,7 +19,8 @@ int main(void) {
 #endif
     gvar2 += red + blue + PI;
     gvar3 = 5 + gvar5;
-    res = addf(a, b);
+    mac_init();
+    res = mac(a, b);
     while(1);
     return 0;
 }

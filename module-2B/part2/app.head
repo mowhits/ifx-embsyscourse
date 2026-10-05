@@ -1,0 +1,23 @@
+
+app.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000010d8  00000000  00000000  00001000  2**3
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .rodata       00000004  000010d8  000010d8  000020d8  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  2 .data         0000001c  20000000  000010dc  00003000  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  3 .bss          00000014  2000001c  000010f8  0000301c  2**2
+                  ALLOC
+  4 .init         00000018  30000000  000010f8  00004000  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  5 .comment      00000045  00000000  00000000  00004018  2**0
+                  CONTENTS, READONLY
+  6 .ARM.attributes 0000002c  00000000  00000000  0000405d  2**0
+                  CONTENTS, READONLY
+  7 .debug_frame  00000100  00000000  00000000  0000408c  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  8 .debug_line_str 000000d2  00000000  00000000  0000418c  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
