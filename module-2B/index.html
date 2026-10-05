@@ -30,20 +30,21 @@ a:hover { color: #8ec07c; }
 .LineNr { color: #7c6f64; }
 .GruvboxOrange { color: #fe8019; }
 .GruvboxRed { color: #fb4934; }
-
 .GruvboxGreen { color: #b8bb26; }
-.LineNr { color: #7c6f64; }
 .GruvboxYellow { color: #fabd2f; }
 .String { color: #b8bb26; }
 .GruvboxGreenBold { color: #b8bb26; font-weight: bold; }
 .GruvboxFg1 { color: #ebdbb2; }
 .GruvboxFg3 { color: #bdae93; }
-.GruvboxBlue { color: #83a598; }
 .Comment { color: #928374; }
-.GruvboxPurple { color: #d3869b; }
-.GruvboxAqua { color: #8ec07c; }
-.GruvboxOrange { color: #fe8019; }
 .GruvboxAquaBold { color: #8ec07c; font-weight: bold; }
+
+hr {
+  border: 0;
+  width: 60%;
+  border-top: 1px solid #504945;
+  margin: 2rem auto;
+}
 
 -->
 <!--
@@ -112,12 +113,12 @@ if ('onhashchange' in window) {
 <p> We perform the usual compilation steps for a Cortex-M0+ target with soft floats. </p>
 
 <h3> 1F: Compare the dis-assembled output of Mac1.o and Mac2.o. How are they different from each other? What is your key-takeaway? </h3>
-<p> Using objdump, we can retrieve the contents of the section headers using the -h flag and the disassembled executable using the -d flag respectively. Running arm-none-eai-objdump -hd mac1.o (and mac2.o) we obtain the following:
+<p> Using objdump, we can retrieve the contents of the section headers using the -h flag and the disassembled executable using the -d flag respectively. Running arm-none-eabi-objdump -hd mac1.o (and mac2.o) we obtain the following:
 
 <table id='vimCodeElement'>
 <tr>
-<th>arm-none-eai-objdump -hd mac1.o</th>
-<th>arm-none-eai-objdump -hd mac2.o</th>
+<th>arm-none-eabi-objdump -hd mac1.o</th>
+<th>arm-none-eabi-objdump -hd mac2.o</th>
 </tr><tr>
 <td><div>
 <pre>
@@ -218,8 +219,8 @@ if ('onhashchange' in window) {
 
 <table id='vimCodeElement'>
 <tr>
-<th>mac1.head</th>
-<th>mac3.head</th>
+<th>arm-none-eabi-objdump -hd mac1.o</th>
+<th>arm-none-eabi-objdump -hd mac3.o</th>
 </tr><tr>
 <td><div>
 <pre>
@@ -328,7 +329,7 @@ if ('onhashchange' in window) {
 
 <h3> 1H: How is the dis-assembled output of Mac4.o different from Mac2.o? </h3>
 Same as above -- passing the -g option at compile creates debug sections to store debug information. gcc is unique in that it is one of the few compilers to support usage of -g with optimize options such as -O2 in this case. This allows us to debug optimized code.
-
+<hr>
 <h3> 2D: Write a simple linker script for this MCU by referring to the linker script taught in the class today.</h3>
 
 <p> The linker script is as follows: </p>
@@ -398,8 +399,8 @@ Same as above -- passing the -g option at compile creates debug sections to stor
 <span id="L7" class="LineNr">7 </span>    acc = -<span class="GruvboxPurple">3.1412</span>;
 <span id="L8" class="LineNr">8 </span>}</pre></div></td></tr></table>
                             <p> Line 5 shows us the inserted directive __attribute__((section(".init"))). </p>
-
-<p> Now, after compiling and linking add and main (note that I needed to give a target argument for gcc to successfully link the file, my command looked like arm-none-eabi-gcc -mcpu=cortex-m0plus -T linker_script.ld add.o main.o -nostartfiles -o app.elf), we can check our mapping using objdump -h.</p>
+                            <h3>2K: Dump the header information of this ELF using the cross-compiled objdump tool and list the sections you see in the output.</h3>
+<p> Now, after compiling and linking add and main (note that I had to give a target argument for gcc to successfully link the file, my command looked like arm-none-eabi-gcc -mcpu=cortex-m0plus -T linker_script.ld add.o main.o -nostartfiles -o app.elf), we can check our mapping using objdump -h.</p>
 <table id='vimCodeElement' style="width:50%">
 <tr>
 <th>arm-none-eabi-objdump -h app.elf</th>
