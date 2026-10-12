@@ -1,0 +1,15 @@
+# Child Makefile for Application_Source
+C_SRCS = mac.c
+LOCAL_OBJS = mac.o
+
+# Contribute to this list the names of the object files tackled by this child makefile
+OBJ_LIST += dsp_source/main.o
+
+all: $(LOCAL_OBJS)
+	@echo "dsp_source populated local objects."
+
+%.o: %.c
+	arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -c $< -o $@
+
+clean:
+	rm -f *.o

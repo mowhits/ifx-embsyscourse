@@ -1,0 +1,16 @@
+# Child Makefile for Application_Source
+C_SRCS = main.c
+LOCAL_OBJS = main.o
+
+# Contribute to this list the names of the object files tackled by this child makefile
+OBJ_LIST += application_source/main.o
+
+all: $(LOCAL_OBJS)
+	@echo "application_source populated local objects."
+
+%.o: %.c
+	arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -c $< -o $@
+
+clean:
+	@echo "hi"
+	rm -f *.o

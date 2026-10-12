@@ -1,0 +1,49 @@
+APPLICATION_NAME = BareMetal
+BIN_DIR = bin
+
+# --- [STUDENT NOTICE] ---
+# We are migrating to a hierarchical design where subdirectories manage themselves.
+# The parent passes OBJ_LIST downward, expecting children to append their files.
+# ------------------------
+export OBJ_LIST = 
+
+# The subdirectories to process
+SUBDIRS = ./application_source ./dsp_source
+
+# Compiler/Linker setup for Infineon's PSoC4 (Cortex-M0+)
+CC = arm-none-eabi-gcc
+LD = arm-none-eabi-gcc
+LSCRIPT = ./linker_script.ld
+DFLAGS = -mcpu=cortex-m0plus -mthumb -msoft-float -fdata-sections -ffunction-sections
+LFLAGS = $(DFLAGS) -T $(LSCRIPT) -nostartfiles --specs=nano.specs -specs=nosys.specs -Wl,--gc-sections
+
+HEX = $(BIN_DIR)/$(APPLICATION_NAME).hex
+ELF = $(BIN_DIR)/$(APPLICATION_NAME).elf
+
+.PHONY: all clean $(SUBDIRS) linker_step
+
+all: $(SUBDIRS) linker_step
+
+# Step 1: Tell each subdirectory to build its own object files and add them to the list
+$(SUBDIRS):
+	@echo "Entering directory: $@"
+	@echo "OBJ_LIST = [$(OBJ_LIST)]"
+	make -C $@ -f subdir.mk
+
+# Step 2: Take the accumulated OBJ_LIST and build the final bare-metal binary
+linker_step: $(ELF) $(HEX)
+
+$(ELF):
+	@echo "--------------------------------------------------------"
+	@echo "DEBUG: Master OBJ_LIST contains: [ $(OBJ_LIST) ]"
+	@echo "--------------------------------------------------------"
+	@echo "Invoking: ARM-GCC C Linker..."
+	@mkdir -p $(dir $@)
+	$(LD) $(LFLAGS) $(OBJ_LIST) -o $(ELF)
+
+$(HEX): $(ELF)
+	arm-none-eabi-objcopy -O ihex $(ELF) $(HEX)
+
+clean:
+	rm -rf $(BIN_DIR)
+	@for dir in $(SUBDIRS); do $(MAKE) -C $$dir clean; done
