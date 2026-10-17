@@ -1,0 +1,170 @@
+{
+    "version": "2.0.0",
+    "configurations": [      
+        {
+            "name": "Debug GENESIS (CMSIS-DAP)",
+            "cwd": "${workspaceRoot}",
+            "executable": "${config:project_elf_path}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "serverpath": "${config:OpenOCD_path}/bin/openocd.exe",
+            "openOCDLaunchCommands": ["transport select swd"],
+            "gdbPath": "${config:local_gdbPath}",
+            "interface": "swd",
+            "serialNumber": "", // add Interface Kitprog serial number if having multiple attached at the same time.
+            "svdFile": "${config:svd_path}",
+            "runToMain": true,
+            "preLaunchTask": "Build Baremetal_Project",
+            "showDevDebugOutput": "none",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:openocd_scripts}",
+            ],
+            "openOCDPreConfigLaunchCommands": [
+                "set PSOC4_USE_ACQUIRE 0"
+            ],
+            "preLaunchCommands": [
+                "set confirm off",
+                "set mem inaccessible-by-default off",
+                "-enable-pretty-printing",
+                "monitor reset"
+            ],
+            "configFiles": [
+                "${config:openocd_interface}",
+                "${config:openocd_target}",
+            ],
+            "overrideRestartCommands": [
+                "starti",
+                "monitor psoc4 reset_halt"
+            ],
+            "postRestartSessionCommands": [
+                "monitor gdb_sync",
+                "stepi"
+            ], 
+            "liveWatch": {
+                "enabled": true
+            },
+        },
+        // When using 'attach', make sure your program is running on the board and that your
+        // executable matches the image in the chip exactly, or else strange things can happen
+        // with breakpoints, variables, etc.
+
+        {
+            "name": "Attach GENESIS (CMSIS-DAP)",
+            "cwd": "${workspaceRoot}",
+            "executable": "${config:project_elf_path}",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "serverpath": "${config:OpenOCD_path}/bin/openocd.exe",
+            "openOCDLaunchCommands": ["transport select swd"],
+            "gdbPath": "${config:local_gdbPath}",
+            "interface": "swd",
+            "serialNumber": "", // add Interface Kitprog serial number if having multiple attached the same time.
+            "svdFile": "${config:svd_path}",
+            "breakAfterReset": true,
+            "runToMain": "main",    // Specifies application entry point name for restart/reset
+            "showDevDebugOutput": "none",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:openocd_scripts}",
+            ],
+            "openOCDPreConfigLaunchCommands": [
+                "set PSOC4_USE_ACQUIRE 0"
+            ],
+            "overrideAttachCommands": [
+                "set confirm off",
+                "set mem inaccessible-by-default off",
+                "-enable-pretty-printing",
+                "monitor halt"
+            ],
+            "configFiles": [
+                "${config:openocd_interface}",
+                "${config:openocd_target}",
+            ],
+            "overrideRestartCommands": [
+                "starti",
+                "monitor psoc4 reset_halt"
+            ],
+            "postRestartSessionCommands": [
+                "monitor gdb_sync",
+                "stepi"
+            ], 
+            "liveWatch": {
+                "enabled": true
+            },
+        },
+
+        {
+            "name": "Erase GENESIS (CMSIS-DAP)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "${config:project_elf_path}",
+            "servertype": "openocd",
+            "serverpath": "${config:OpenOCD_path}/bin/openocd.exe",
+            "gdbPath": "${config:local_gdbPath}",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:openocd_scripts}",
+            ],
+            "configFiles": [
+                "${config:openocd_interface}",
+                "${config:openocd_target}",
+            ],
+            "openOCDPreConfigLaunchCommands": [
+                "set PSOC4_USE_ACQUIRE 1"
+            ],
+            "overrideLaunchCommands": [
+                "set confirm off",
+                "monitor reset init",
+                "monitor flash erase_sector 0 0 last"
+            ],
+            "postStartSessionCommands": [
+                "quit"
+            ],
+            "logging": {
+                "engineLogging": false,   // <-- Set this to false
+                "moduleLoad": false,
+                "threadExit": false
+            },
+            "showDevDebugOutput": "none"
+        },
+
+
+        {
+            "name": "Program GENESIS (CMSIS-DAP)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "${config:project_elf_path}",
+            "servertype": "openocd",
+            "serverpath": "${config:OpenOCD_path}/bin/openocd.exe",
+            "gdbPath": "${config:local_gdbPath}",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:openocd_scripts}",
+            ],
+            "configFiles": [
+                "${config:openocd_interface}",
+                "${config:openocd_target}",
+            ],
+            "openOCDPreConfigLaunchCommands": [
+                "set PSOC4_USE_ACQUIRE 1"
+            ],
+            "overrideLaunchCommands": [
+                "set confirm off",
+                "monitor program ${config:project_hex_path}",
+                "monitor reset_config srst_only",
+                "monitor reset run",
+                "monitor psoc4.dap dpreg 0x04 0x00"
+            ],
+            "postStartSessionCommands": [
+                "quit"
+            ],
+            "preLaunchTask": "Build Baremetal_Project", //build before program
+            "showDevDebugOutput": "none"
+        }
+    ]
+}
