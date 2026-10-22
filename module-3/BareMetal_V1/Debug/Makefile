@@ -47,10 +47,16 @@ RM = rm -rf *.exe *.o *.elf
 ################################################################################
 # Automatically-generated file. Do not edit!
 ################################################################################
+-include ./DSP_Source/subdir.mk
 -include ./Application_Source/subdir.mk
 -include ./Libc_Device_Support/subdir.mk
 -include ./Special_Libraries/subdir.mk
 -include ./Startup/subdir.mk
+
+# Includes for cross-folder dependencies
+INCLUDEFLAGS = -I../Application_Source \
+-I../DSP_Source
+
 
 print_variables:
 		@echo 'Object files: $(OBJS)'
