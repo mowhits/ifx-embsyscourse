@@ -1,0 +1,16 @@
+{
+    "OpenOCD_path":"${env:IFX_EMBEDDED_SYSTEMS_SW}/openocd",
+    "APPLICATION_NAME":  "BareMetal",
+    "local_gdbPath": "${env:IFX_EMBEDDED_SYSTEMS_SW}/Arm_GNU_Toolchain_arm_none_eabi/13_2_Rel1/bin/arm-none-eabi-gdb.exe", 
+
+    "project_elf_path": "./Debug/bin/${config:APPLICATION_NAME}.elf",
+    "openocd_scripts": "${config:OpenOCD_path}/scripts/",
+    "openocd_interface" : "${config:OpenOCD_path}/scripts/interface/cmsis-dap.cfg",
+    "openocd_target" :"${config:OpenOCD_path}/scripts/target/psoc4.cfg",
+    "svd_path": "${workspaceRoot}/.vscode/psoc4100smax.svd",
+    "project_hex_path" : "./Debug/bin/${config:APPLICATION_NAME}.hex",
+    "cortex-debug.variableUseNaturalFormat": true,
+    "files.associations": {
+        "reset.h": "c"
+    },
+}
