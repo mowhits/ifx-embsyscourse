@@ -17,6 +17,9 @@ int main()
     *((uint32_t *)0x40040000) = (1 << 6); // Set default output value of P0.6 to 1 (GPIO_PRT0_DR)
     *((uint32_t *)0x40040008) = (6 << 18); // Set output value of P0.6 to to Digital OP Push Pull (GPIO_PRT0_PC)
    
+    *((uint32_t *)0x40040B00) = (1 << 5); // Set default output value of P11.5 to 1 (GPIO_PRT11_DR)
+    *((uint32_t *)0x40040B08) = (6 << 15); // Set output value of P11.5 to to Digital OP Push Pull (GPIO_PRT0_PC)
+   
     *((uint32_t *)0x40040408) = (2 << 0); // Set output value of P4.0 to to Digital Input resistive pull up (GPIO_PRT4_PC)
     *((uint32_t *)0x40040400) = (1 << 0); // Set default output value of P4.0 to 1 (GPIO_PRT4_DR)
 
@@ -43,7 +46,12 @@ int main()
 
         *((uint32_t *)0x40040800) = (1 << 0); // Set output value of P8.0 to 1 (GPIO_PRT8_DR)
         Delay(60000);	
-    }
+        
+        *((uint32_t *)0x40040B00) = (0 << 0); // Set output value of P8.0 to 0 (GPIO_PRT8_DR)
+        Delay(60000);
+
+        *((uint32_t *)0x40040B00) = (1 << 0); // Set output value of P8.0 to 1 (GPIO_PRT8_DR)
+        Delay(60000);   }
 
     return 0;
 }
