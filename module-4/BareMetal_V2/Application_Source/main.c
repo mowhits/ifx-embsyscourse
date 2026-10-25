@@ -47,10 +47,10 @@ int main()
         *((uint32_t *)0x40040800) = (1 << 0); // Set output value of P8.0 to 1 (GPIO_PRT8_DR)
         Delay(60000);	
         
-        *((uint32_t *)0x40040B00) = (0 << 0); // Set output value of P8.0 to 0 (GPIO_PRT8_DR)
+        *((uint32_t *)0x40040B00) = (0 << 0); // Set output value of P11.5 to 0 (GPIO_PRT8_DR)
         Delay(60000);
 
-        *((uint32_t *)0x40040B00) = (1 << 0); // Set output value of P8.0 to 1 (GPIO_PRT8_DR)
+        *((uint32_t *)0x40040B00) = (1 << 0); // Set output value of P11.5 to 1 (GPIO_PRT8_DR)
         Delay(60000);   }
 
     return 0;
