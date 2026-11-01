@@ -8,6 +8,8 @@ uint8_t app_stack[4096] __attribute__((section (".stack")));
 /* Flag used to toggle LED based on button input */
 uint8_t invertFLAG = 0;
 
+uint8_t initdata1[25] __attribute__((section (".my_initdata_section"))) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+
 void Delay(uint32_t delayNumber);
 
 int main()
@@ -34,6 +36,9 @@ int main()
 
 	/* Trying to write into invalid address */
     // *((uint32_t *)0x60000000) = 0xDEADBEEF;
+
+    /* Add from two arrays */
+    uint8_t sum = initdata1[5] + initdata2[10];
 
     for(;;)
     {

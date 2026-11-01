@@ -49,6 +49,7 @@ SECTIONS
     {
         __data_start = .;
         *(.data*)
+        *(.my_initdata_section)
         . = ALIGN(4);
         __data_end = .;
 
