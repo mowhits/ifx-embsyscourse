@@ -1,0 +1,456 @@
+
+bin/BareMetal.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000002fc  00000000  00000000  00001000  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  20000000  20000000  000012fc  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000004  20000000  000002fc  00002000  2**0
+                  ALLOC
+  3 .heap         00000200  20002df0  20002df0  00001df0  2**2
+                  ALLOC
+  4 .stack        00001010  20002ff0  20002ff0  00001df0  2**2
+                  ALLOC
+  5 .debug_info   000003c7  00000000  00000000  000012fc  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  6 .debug_abbrev 00000250  00000000  00000000  000016c3  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  7 .debug_aranges 00000060  00000000  00000000  00001913  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  8 .debug_line   0000043c  00000000  00000000  00001973  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  9 .debug_str    0000027d  00000000  00000000  00001daf  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 10 .comment      00000044  00000000  00000000  0000202c  2**0
+                  CONTENTS, READONLY
+ 11 .ARM.attributes 0000002c  00000000  00000000  00002070  2**0
+                  CONTENTS, READONLY
+ 12 .debug_frame  00000164  00000000  00000000  0000209c  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+
+Disassembly of section .text:
+
+00000000 <vector_table>:
+   0:	00 40 00 20 0f 02 00 00 a5 02 00 00 ad 02 00 00     .@. ............
+	...
+  2c:	a5 02 00 00 00 00 00 00 00 00 00 00 a5 02 00 00     ................
+  3c:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  4c:	a5 02 00 00 8f 01 00 00 a5 02 00 00 a5 02 00 00     ................
+  5c:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  6c:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  7c:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  8c:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  9c:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  ac:	a5 02 00 00 a5 02 00 00 a5 02 00 00 a5 02 00 00     ................
+  bc:	a5 02 00 00                                         ....
+
+000000c0 <main>:
+uint8_t invertFLAG = 0;
+
+void Delay(uint32_t delayNumber);
+
+int main()
+{
+  c0:	b580      	push	{r7, lr}
+  c2:	af00      	add	r7, sp, #0
+    /* Enable Interrupts at CPU level */
+    enable_irq();
+  c4:	f000 f892 	bl	1ec <enable_irq>
+
+    *((uint32_t *)0x40040800) = (1 << 0); // Set default output value of P8.0 to 1 (GPIO_PRT8_DR)
+  c8:	4b17      	ldr	r3, [pc, #92]	@ (128 <main+0x68>)
+  ca:	2201      	movs	r2, #1
+  cc:	601a      	str	r2, [r3, #0]
+    *((uint32_t *)0x40040808) = (6 << 0); // Set drive mode of P8.0 to Digital OP Push Pull (GPIO_PRT8_PC)
+  ce:	4b17      	ldr	r3, [pc, #92]	@ (12c <main+0x6c>)
+  d0:	2206      	movs	r2, #6
+  d2:	601a      	str	r2, [r3, #0]
+
+    *((uint32_t *)0x40040000) = (1 << 6); // Set default output value of P0.6 to 1 (GPIO_PRT0_DR)
+  d4:	4b16      	ldr	r3, [pc, #88]	@ (130 <main+0x70>)
+  d6:	2240      	movs	r2, #64	@ 0x40
+  d8:	601a      	str	r2, [r3, #0]
+    *((uint32_t *)0x40040008) = (6 << 18); // Set output value of P0.6 to to Digital OP Push Pull (GPIO_PRT0_PC)
+  da:	4b16      	ldr	r3, [pc, #88]	@ (134 <main+0x74>)
+  dc:	22c0      	movs	r2, #192	@ 0xc0
+  de:	0352      	lsls	r2, r2, #13
+  e0:	601a      	str	r2, [r3, #0]
+   
+    *((uint32_t *)0x40040408) = (2 << 0); // Set output value of P4.0 to to Digital Input resistive pull up (GPIO_PRT4_PC)
+  e2:	4b15      	ldr	r3, [pc, #84]	@ (138 <main+0x78>)
+  e4:	2202      	movs	r2, #2
+  e6:	601a      	str	r2, [r3, #0]
+    *((uint32_t *)0x40040400) = (1 << 0); // Set default output value of P4.0 to 1 (GPIO_PRT4_DR)
+  e8:	4b14      	ldr	r3, [pc, #80]	@ (13c <main+0x7c>)
+  ea:	2201      	movs	r2, #1
+  ec:	601a      	str	r2, [r3, #0]
+    *((uint32_t *)0x4004040C) = (2 << 0); // Enable falling edge interrupt detection for P4.0 (GPIO_PRT4_INTR_CFG)
+  ee:	4b14      	ldr	r3, [pc, #80]	@ (140 <main+0x80>)
+  f0:	2202      	movs	r2, #2
+  f2:	601a      	str	r2, [r3, #0]
+
+    /* Set priority level of the P4.0 user button (CM0P_IPRx) */
+    *((uint32_t *)0xE000E404) = (3 << 6);
+  f4:	4b13      	ldr	r3, [pc, #76]	@ (144 <main+0x84>)
+  f6:	22c0      	movs	r2, #192	@ 0xc0
+  f8:	601a      	str	r2, [r3, #0]
+
+    /* Clearing and enabling the GPIO interrupt in NVIC for IRQ4 */
+    *((uint32_t *)0xE000E280) = 0xFFFFFFFF; // (CM0P_ICPR) 
+  fa:	4b13      	ldr	r3, [pc, #76]	@ (148 <main+0x88>)
+  fc:	2201      	movs	r2, #1
+  fe:	4252      	negs	r2, r2
+ 100:	601a      	str	r2, [r3, #0]
+    *((uint32_t *)0xE000E100) = (1 << 4);   // (CM0P_ISER) 
+ 102:	4b12      	ldr	r3, [pc, #72]	@ (14c <main+0x8c>)
+ 104:	2210      	movs	r2, #16
+ 106:	601a      	str	r2, [r3, #0]
+    // *((uint32_t *)0x60000000) = 0xDEADBEEF;
+
+    for(;;)
+    {
+        /* In an infinite loop toggle the LED 8.0, perform blinkey operation */
+        *((uint32_t *)0x40040800) = (0 << 0); // Set output value of P8.0 to 0 (GPIO_PRT8_DR)
+ 108:	4b07      	ldr	r3, [pc, #28]	@ (128 <main+0x68>)
+ 10a:	2200      	movs	r2, #0
+ 10c:	601a      	str	r2, [r3, #0]
+        Delay(60000);
+ 10e:	4b10      	ldr	r3, [pc, #64]	@ (150 <main+0x90>)
+ 110:	0018      	movs	r0, r3
+ 112:	f000 f81f 	bl	154 <Delay>
+
+        *((uint32_t *)0x40040800) = (1 << 0); // Set output value of P8.0 to 1 (GPIO_PRT8_DR)
+ 116:	4b04      	ldr	r3, [pc, #16]	@ (128 <main+0x68>)
+ 118:	2201      	movs	r2, #1
+ 11a:	601a      	str	r2, [r3, #0]
+        Delay(60000);
+ 11c:	4b0c      	ldr	r3, [pc, #48]	@ (150 <main+0x90>)
+ 11e:	0018      	movs	r0, r3
+ 120:	f000 f818 	bl	154 <Delay>
+        *((uint32_t *)0x40040800) = (0 << 0); // Set output value of P8.0 to 0 (GPIO_PRT8_DR)
+ 124:	46c0      	nop			@ (mov r8, r8)
+ 126:	e7ef      	b.n	108 <main+0x48>
+ 128:	40040800 	.word	0x40040800
+ 12c:	40040808 	.word	0x40040808
+ 130:	40040000 	.word	0x40040000
+ 134:	40040008 	.word	0x40040008
+ 138:	40040408 	.word	0x40040408
+ 13c:	40040400 	.word	0x40040400
+ 140:	4004040c 	.word	0x4004040c
+ 144:	e000e404 	.word	0xe000e404
+ 148:	e000e280 	.word	0xe000e280
+ 14c:	e000e100 	.word	0xe000e100
+ 150:	0000ea60 	.word	0x0000ea60
+
+00000154 <Delay>:
+    return 0;
+}
+
+/* Simple software based delay function */
+void Delay(uint32_t delayNumber)
+{
+ 154:	b580      	push	{r7, lr}
+ 156:	b084      	sub	sp, #16
+ 158:	af00      	add	r7, sp, #0
+ 15a:	6078      	str	r0, [r7, #4]
+    for(uint32_t i=0; i<delayNumber; i++);
+ 15c:	2300      	movs	r3, #0
+ 15e:	60fb      	str	r3, [r7, #12]
+ 160:	e002      	b.n	168 <Delay+0x14>
+ 162:	68fb      	ldr	r3, [r7, #12]
+ 164:	3301      	adds	r3, #1
+ 166:	60fb      	str	r3, [r7, #12]
+ 168:	68fa      	ldr	r2, [r7, #12]
+ 16a:	687b      	ldr	r3, [r7, #4]
+ 16c:	429a      	cmp	r2, r3
+ 16e:	d3f8      	bcc.n	162 <Delay+0xe>
+    for(uint32_t i=0; i<delayNumber; i++);
+ 170:	2300      	movs	r3, #0
+ 172:	60bb      	str	r3, [r7, #8]
+ 174:	e002      	b.n	17c <Delay+0x28>
+ 176:	68bb      	ldr	r3, [r7, #8]
+ 178:	3301      	adds	r3, #1
+ 17a:	60bb      	str	r3, [r7, #8]
+ 17c:	68ba      	ldr	r2, [r7, #8]
+ 17e:	687b      	ldr	r3, [r7, #4]
+ 180:	429a      	cmp	r2, r3
+ 182:	d3f8      	bcc.n	176 <Delay+0x22>
+}
+ 184:	46c0      	nop			@ (mov r8, r8)
+ 186:	46c0      	nop			@ (mov r8, r8)
+ 188:	46bd      	mov	sp, r7
+ 18a:	b004      	add	sp, #16
+ 18c:	bd80      	pop	{r7, pc}
+
+0000018e <ioss_interrupt_gpio_IRQHandler>:
+
+/* Interrupt handler for the button */
+void ioss_interrupt_gpio_IRQHandler(void)
+{
+ 18e:	b580      	push	{r7, lr}
+ 190:	b082      	sub	sp, #8
+ 192:	af00      	add	r7, sp, #0
+     uint32_t readVal;
+    
+     /* Clear the interrupt status at the GPIO peripheral to enable the next interrupt */
+    *((uint32_t *)0x40040410) = (1 << 0); // Clear Interrupt for P4.0 (GPIO_PRT4_INTR)
+ 194:	4b11      	ldr	r3, [pc, #68]	@ (1dc <ioss_interrupt_gpio_IRQHandler+0x4e>)
+ 196:	2201      	movs	r2, #1
+ 198:	601a      	str	r2, [r3, #0]
+    
+	readVal = *((uint32_t *)0x40040404); // Read the P4.0 Input register and store into readVal (GPIO_PRT4_PS)
+ 19a:	4b11      	ldr	r3, [pc, #68]	@ (1e0 <ioss_interrupt_gpio_IRQHandler+0x52>)
+ 19c:	681b      	ldr	r3, [r3, #0]
+ 19e:	607b      	str	r3, [r7, #4]
+	if(((readVal >> 0) & 1) == 0u)
+ 1a0:	687b      	ldr	r3, [r7, #4]
+ 1a2:	2201      	movs	r2, #1
+ 1a4:	4013      	ands	r3, r2
+ 1a6:	d114      	bne.n	1d2 <ioss_interrupt_gpio_IRQHandler+0x44>
+	{
+		if(invertFLAG == 1u)
+ 1a8:	4b0e      	ldr	r3, [pc, #56]	@ (1e4 <ioss_interrupt_gpio_IRQHandler+0x56>)
+ 1aa:	781b      	ldrb	r3, [r3, #0]
+ 1ac:	2b01      	cmp	r3, #1
+ 1ae:	d106      	bne.n	1be <ioss_interrupt_gpio_IRQHandler+0x30>
+		{
+			*((uint32_t *)0x40040000) = (1 << 6); // Set output value of P0.6 to 1 (GPIO_PRT0_DR)
+ 1b0:	4b0d      	ldr	r3, [pc, #52]	@ (1e8 <ioss_interrupt_gpio_IRQHandler+0x5a>)
+ 1b2:	2240      	movs	r2, #64	@ 0x40
+ 1b4:	601a      	str	r2, [r3, #0]
+			invertFLAG = 0u;
+ 1b6:	4b0b      	ldr	r3, [pc, #44]	@ (1e4 <ioss_interrupt_gpio_IRQHandler+0x56>)
+ 1b8:	2200      	movs	r2, #0
+ 1ba:	701a      	strb	r2, [r3, #0]
+		{         
+			*((uint32_t *)0x40040000) = (0 << 6); // Set output value of P0.6 to 0 (GPIO_PRT0_DR)
+			invertFLAG = 1u;          
+		}
+	} 
+}
+ 1bc:	e009      	b.n	1d2 <ioss_interrupt_gpio_IRQHandler+0x44>
+		else if(invertFLAG == 0u)
+ 1be:	4b09      	ldr	r3, [pc, #36]	@ (1e4 <ioss_interrupt_gpio_IRQHandler+0x56>)
+ 1c0:	781b      	ldrb	r3, [r3, #0]
+ 1c2:	2b00      	cmp	r3, #0
+ 1c4:	d105      	bne.n	1d2 <ioss_interrupt_gpio_IRQHandler+0x44>
+			*((uint32_t *)0x40040000) = (0 << 6); // Set output value of P0.6 to 0 (GPIO_PRT0_DR)
+ 1c6:	4b08      	ldr	r3, [pc, #32]	@ (1e8 <ioss_interrupt_gpio_IRQHandler+0x5a>)
+ 1c8:	2200      	movs	r2, #0
+ 1ca:	601a      	str	r2, [r3, #0]
+			invertFLAG = 1u;          
+ 1cc:	4b05      	ldr	r3, [pc, #20]	@ (1e4 <ioss_interrupt_gpio_IRQHandler+0x56>)
+ 1ce:	2201      	movs	r2, #1
+ 1d0:	701a      	strb	r2, [r3, #0]
+}
+ 1d2:	46c0      	nop			@ (mov r8, r8)
+ 1d4:	46bd      	mov	sp, r7
+ 1d6:	b002      	add	sp, #8
+ 1d8:	bd80      	pop	{r7, pc}
+ 1da:	46c0      	nop			@ (mov r8, r8)
+ 1dc:	40040410 	.word	0x40040410
+ 1e0:	40040404 	.word	0x40040404
+ 1e4:	20000000 	.word	0x20000000
+ 1e8:	40040000 	.word	0x40040000
+
+000001ec <enable_irq>:
+#include "cmsis_gcc.h"
+#include <stdint.h>
+
+void enable_irq(void)
+{
+ 1ec:	b580      	push	{r7, lr}
+ 1ee:	af00      	add	r7, sp, #0
+  __asm volatile ("cpsie i" : : : "memory");
+ 1f0:	b662      	cpsie	i
+}
+ 1f2:	46c0      	nop			@ (mov r8, r8)
+ 1f4:	46bd      	mov	sp, r7
+ 1f6:	bd80      	pop	{r7, pc}
+
+000001f8 <disable_irq>:
+
+void disable_irq(void)
+{
+ 1f8:	b580      	push	{r7, lr}
+ 1fa:	af00      	add	r7, sp, #0
+  __asm volatile ("cpsid i" : : : "memory");
+ 1fc:	b672      	cpsid	i
+ 1fe:	46c0      	nop			@ (mov r8, r8)
+ 200:	46bd      	mov	sp, r7
+ 202:	bd80      	pop	{r7, pc}
+
+00000204 <_init>:
+
+extern uint32_t __stack_Start__;
+extern uint32_t __STACK_START;
+extern uint32_t __STACK_END;
+
+extern void _init(void) {;}
+ 204:	b580      	push	{r7, lr}
+ 206:	af00      	add	r7, sp, #0
+ 208:	46c0      	nop			@ (mov r8, r8)
+ 20a:	46bd      	mov	sp, r7
+ 20c:	bd80      	pop	{r7, pc}
+
+0000020e <Reset_handler>:
+    (uint32_t)exco_interrupt_IRQHandler,                /*  30 EXCO */
+    (uint32_t)audioss_interrupt_i2s_IRQHandler          /*  31 I2S Interrupt */
+};
+
+void Reset_handler(void)
+{
+ 20e:	b580      	push	{r7, lr}
+ 210:	b086      	sub	sp, #24
+ 212:	af00      	add	r7, sp, #0
+    //disable watchdog
+    (*(uint32_t *) CYREG_WDT_DISABLE_KEY) = CY_SYS_WDT_KEY;
+ 214:	4b1c      	ldr	r3, [pc, #112]	@ (288 <Reset_handler+0x7a>)
+ 216:	4a1d      	ldr	r2, [pc, #116]	@ (28c <Reset_handler+0x7e>)
+ 218:	601a      	str	r2, [r3, #0]
+
+    //copy .data section to SRAM
+    uint32_t size = &__data_end - &__data_start;
+ 21a:	4a1d      	ldr	r2, [pc, #116]	@ (290 <Reset_handler+0x82>)
+ 21c:	4b1d      	ldr	r3, [pc, #116]	@ (294 <Reset_handler+0x86>)
+ 21e:	1ad3      	subs	r3, r2, r3
+ 220:	109b      	asrs	r3, r3, #2
+ 222:	607b      	str	r3, [r7, #4]
+    uint32_t *pDst = (uint32_t*)&__data_start;
+ 224:	4b1b      	ldr	r3, [pc, #108]	@ (294 <Reset_handler+0x86>)
+ 226:	617b      	str	r3, [r7, #20]
+    uint32_t *pSrc = (uint32_t*)&_la_data;
+ 228:	4b1b      	ldr	r3, [pc, #108]	@ (298 <Reset_handler+0x8a>)
+ 22a:	613b      	str	r3, [r7, #16]
+
+    for(uint32_t i = 0; i< size; i++)
+ 22c:	2300      	movs	r3, #0
+ 22e:	60fb      	str	r3, [r7, #12]
+ 230:	e00a      	b.n	248 <Reset_handler+0x3a>
+    {
+        *pDst++ = *pSrc++;
+ 232:	693a      	ldr	r2, [r7, #16]
+ 234:	1d13      	adds	r3, r2, #4
+ 236:	613b      	str	r3, [r7, #16]
+ 238:	697b      	ldr	r3, [r7, #20]
+ 23a:	1d19      	adds	r1, r3, #4
+ 23c:	6179      	str	r1, [r7, #20]
+ 23e:	6812      	ldr	r2, [r2, #0]
+ 240:	601a      	str	r2, [r3, #0]
+    for(uint32_t i = 0; i< size; i++)
+ 242:	68fb      	ldr	r3, [r7, #12]
+ 244:	3301      	adds	r3, #1
+ 246:	60fb      	str	r3, [r7, #12]
+ 248:	68fa      	ldr	r2, [r7, #12]
+ 24a:	687b      	ldr	r3, [r7, #4]
+ 24c:	429a      	cmp	r2, r3
+ 24e:	d3f0      	bcc.n	232 <Reset_handler+0x24>
+    }
+    //int the .bss section to zero in SRAM
+    size = &__bss_end__ - &__bss_start__;
+ 250:	4a12      	ldr	r2, [pc, #72]	@ (29c <Reset_handler+0x8e>)
+ 252:	4b13      	ldr	r3, [pc, #76]	@ (2a0 <Reset_handler+0x92>)
+ 254:	1ad3      	subs	r3, r2, r3
+ 256:	109b      	asrs	r3, r3, #2
+ 258:	607b      	str	r3, [r7, #4]
+    pDst = (uint32_t*)&__bss_start__;
+ 25a:	4b11      	ldr	r3, [pc, #68]	@ (2a0 <Reset_handler+0x92>)
+ 25c:	617b      	str	r3, [r7, #20]
+
+    for(uint32_t i = 0; i< size; i++)
+ 25e:	2300      	movs	r3, #0
+ 260:	60bb      	str	r3, [r7, #8]
+ 262:	e007      	b.n	274 <Reset_handler+0x66>
+    {
+        *pDst++ = 0;
+ 264:	697b      	ldr	r3, [r7, #20]
+ 266:	1d1a      	adds	r2, r3, #4
+ 268:	617a      	str	r2, [r7, #20]
+ 26a:	2200      	movs	r2, #0
+ 26c:	601a      	str	r2, [r3, #0]
+    for(uint32_t i = 0; i< size; i++)
+ 26e:	68bb      	ldr	r3, [r7, #8]
+ 270:	3301      	adds	r3, #1
+ 272:	60bb      	str	r3, [r7, #8]
+ 274:	68ba      	ldr	r2, [r7, #8]
+ 276:	687b      	ldr	r3, [r7, #4]
+ 278:	429a      	cmp	r2, r3
+ 27a:	d3f3      	bcc.n	264 <Reset_handler+0x56>
+    }
+
+    // Init C std libs
+    __libc_init_array();
+ 27c:	f000 f81a 	bl	2b4 <__libc_init_array>
+
+    //call main()
+    main();
+ 280:	f7ff ff1e 	bl	c0 <main>
+
+    while (1)
+ 284:	46c0      	nop			@ (mov r8, r8)
+ 286:	e7fd      	b.n	284 <Reset_handler+0x76>
+ 288:	40030038 	.word	0x40030038
+ 28c:	aced8865 	.word	0xaced8865
+ 290:	20000000 	.word	0x20000000
+ 294:	20000000 	.word	0x20000000
+ 298:	000002fc 	.word	0x000002fc
+ 29c:	20000004 	.word	0x20000004
+ 2a0:	20000000 	.word	0x20000000
+
+000002a4 <Default_Handler>:
+
+/*----------------------------------------------------------------------------
+  Default Handler for Exceptions / Interrupts
+ *----------------------------------------------------------------------------*/
+void Default_Handler(void)
+{
+ 2a4:	b580      	push	{r7, lr}
+ 2a6:	af00      	add	r7, sp, #0
+    while(1);
+ 2a8:	46c0      	nop			@ (mov r8, r8)
+ 2aa:	e7fd      	b.n	2a8 <Default_Handler+0x4>
+
+000002ac <HRDFLT_Handler>:
+
+/*----------------------------------------------------------------------------
+  Default Handler for Hard Fault
+ *----------------------------------------------------------------------------*/
+void HRDFLT_Handler(void)
+{
+ 2ac:	b580      	push	{r7, lr}
+ 2ae:	af00      	add	r7, sp, #0
+    while (1)
+ 2b0:	46c0      	nop			@ (mov r8, r8)
+ 2b2:	e7fd      	b.n	2b0 <HRDFLT_Handler+0x4>
+
+000002b4 <__libc_init_array>:
+ 2b4:	b570      	push	{r4, r5, r6, lr}
+ 2b6:	2600      	movs	r6, #0
+ 2b8:	4c0c      	ldr	r4, [pc, #48]	@ (2ec <__libc_init_array+0x38>)
+ 2ba:	4d0d      	ldr	r5, [pc, #52]	@ (2f0 <__libc_init_array+0x3c>)
+ 2bc:	1b64      	subs	r4, r4, r5
+ 2be:	10a4      	asrs	r4, r4, #2
+ 2c0:	42a6      	cmp	r6, r4
+ 2c2:	d109      	bne.n	2d8 <__libc_init_array+0x24>
+ 2c4:	2600      	movs	r6, #0
+ 2c6:	f7ff ff9d 	bl	204 <_init>
+ 2ca:	4c0a      	ldr	r4, [pc, #40]	@ (2f4 <__libc_init_array+0x40>)
+ 2cc:	4d0a      	ldr	r5, [pc, #40]	@ (2f8 <__libc_init_array+0x44>)
+ 2ce:	1b64      	subs	r4, r4, r5
+ 2d0:	10a4      	asrs	r4, r4, #2
+ 2d2:	42a6      	cmp	r6, r4
+ 2d4:	d105      	bne.n	2e2 <__libc_init_array+0x2e>
+ 2d6:	bd70      	pop	{r4, r5, r6, pc}
+ 2d8:	00b3      	lsls	r3, r6, #2
+ 2da:	58eb      	ldr	r3, [r5, r3]
+ 2dc:	4798      	blx	r3
+ 2de:	3601      	adds	r6, #1
+ 2e0:	e7ee      	b.n	2c0 <__libc_init_array+0xc>
+ 2e2:	00b3      	lsls	r3, r6, #2
+ 2e4:	58eb      	ldr	r3, [r5, r3]
+ 2e6:	4798      	blx	r3
+ 2e8:	3601      	adds	r6, #1
+ 2ea:	e7f2      	b.n	2d2 <__libc_init_array+0x1e>
+	...
